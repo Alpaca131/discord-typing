@@ -5,6 +5,7 @@ import time
 from datetime import datetime, timedelta, timezone
 
 TOKEN = os.environ['DISCORD_BOT_TOKEN']
+TOKEN1 = 'NzM2MjQzNTY3OTMxOTQ5MTM2.Xxr-QQ.QlESXXcTRnyb4Rh5e8IjGVLAdDc'
 client = discord.Client()
 jst = timezone(timedelta(hours=9), 'JST')
 dt_now = datetime.now(jst)
@@ -112,4 +113,4 @@ async def on_typing(channel, user, when):
         time_dic[user.id] = start
 
 
-client.run(TOKEN)
+client.run(TOKEN1)
