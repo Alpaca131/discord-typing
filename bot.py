@@ -76,6 +76,7 @@ async def on_message(message):
             count_active.append(i.id)
         q_num_dic[message.guild.id] = q_num
         return
+
     if message.author.id in count_active:
         q_num = q_num_dic.get(message.guild.id)
         print(answer_list[q_num])
