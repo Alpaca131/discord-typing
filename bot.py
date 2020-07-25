@@ -112,4 +112,4 @@ async def on_typing(channel, user, when):
         time_dic[user.id] = start
 
 
-client.run(TOKEN1)
+client.run(TOKEN)
