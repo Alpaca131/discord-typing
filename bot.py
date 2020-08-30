@@ -4,14 +4,7 @@ import os
 import time
 import asyncio
 from datetime import datetime, timedelta, timezone
-
-'''
-変数説明
-count_activeリスト･･･入力時間をcountしているユーザーのリスト
-time_dic･･･キー：ユーザーID 値：入力開始時のunix時間
-q_num_dic･･･サーバーごとの問題番号の辞書
-困ってるんで変数名で提案があったらよろしく！
-'''
+import json
 
 TOKEN = os.environ['DISCORD_BOT_TOKEN']
 client = discord.Client()
@@ -20,14 +13,13 @@ dt_now = datetime.now(jst)
 count_active = []
 time_dic = {}
 q_num_dic = {}
-answer_list = ['しかくいたたみをまるくはく', 'ゆうこうきげんがきれました', 'とくしょうははわいりょこう', 'さんかくかんすうがもんだい', 'ていきあつがはったつちゅう', 'ゆうきゅうきゅうかをつかう',
-               'とっぴんぐはちょこれーとで',
-               'みでぃあむでやいてください', 'うぃすきーをおんざろっくで', 'ひやしちゅうかはじめました', 'おれのけーきくったのだれだ',
-               'そんなこわいかおするなって', 'かようびはていきゅうびです', 'つかいすてこんたくとれんず', 'だれもはんのうしてくれない']
-
-question_list = ['四角い畳を丸く掃く', '有効期限が切れました', '特賞はハワイ旅行', '三角関数が問題', '低気圧が発達中', '有給休暇を使う', 'トッピングはチョコレートで',
-                 'ミディアムで焼いてください', 'ウィスキーをオンザロックで', '冷やし中華始めました', '俺のケーキ食ったの誰だ',
-                 'そんな恐い顔するなって', '火曜日は定休日です', '使い捨てコンタクトレンズ', '誰も反応してくれない']
+with open('susida.json', encoding='utf-8') as f:
+    susida_dict = json.load(f)
+level_dict = {}
+competitor_time = {}
+competitor_status = {}
+question_num_dict = {}
+start_time_dict = {}
 
 
 @client.event
@@ -44,110 +36,138 @@ async def on_message(message):
     # ヘルプをembedで送信
     if message.content == 'ヘルプ':
         embed = discord.Embed(title="ヘルプ・コマンド一覧", description="こんな感じ\n問「新入生歓迎会」：解「しんにゅうせいかんげいかい」", color=0x0008ff)
-        embed.add_field(name='タイピング問題',
-                        value="・タイピング1\n・レベル2以降は実装予定…", inline=False)
+        embed.add_field(name='タイピング',
+                        value="・レベルを選択し、ゲームを開始します。", inline=False)
         embed.add_field(name='次',
                         value="・次の問題を出します。", inline=False)
         embed.add_field(name='終了 or 終わり',
                         value="・現在進行中のゲームを終了させます。", inline=False)
         await message.channel.send(embed=embed)
 
-    # ゲーム終了
-    if message.content == '終わり' or message.content == '終了':
-        # ゲームが実行中じゃなかった場合
-        if message.guild.id not in q_num_dic:
-            await message.channel.send('現在進行中のゲームはありません。')
+    elif message.content == 'タイピング':
+        embed = discord.Embed(title='レベルを選択して下さい', description='レベルの番号を送って下さい。',
+                              color=0x85cc00)
+        val = 0
+        while val < 15:
+            val = val + 1
+            if val == 14:
+                embed.add_field(name='［13］14文字以上', value='最高難易度の14文字以上の問題です。', inline=False)
+                break
+            embed.add_field(name='［' + str(val) + '］' + str(val + 1) + '文字', value=str(val + 1) + '文字の問題です。',
+                            inline=False)
+        wizzard = await message.channel.send(embed=embed)
+        competitor_time[message.channel.id] = {}
+
+        def not_bot(user):
+            if user.bot:
+                return False
+            else:
+                return True
+
+        def reaction_check(reaction, user):
+            if reaction.message.id == wizzard.id:
+                if not user.bot:
+                    if str(reaction) == '➡' or str(reaction) == '<:sanka:749562970345832469>':
+                        return True
+            return False
+
+        def bot_check(m):
+            return m.channel == message.channel and m.author == message.author and m.author.bot != True
+
+        level_select = await client.wait_for('message', check=bot_check)
+        try:
+            level = int(level_select.content)+1
+        except ValueError:
+            embed = discord.Embed(title='エラー：キャンセルしました',
+                                  description='レベルの番号以外が入力されました。\n半角数字で、レベルの番号を入力して下さい。', color=discord.Color.red())
+            await wizzard.edit(embed=embed)
             return
-        # 実行中だった場合。関数化予定
-        del q_num_dic[message.guild.id]
-        # サーバーメンバー全員をfor in で回す
-        for i in message.guild.members:
-            # カウントがactiveの場合、deactiveに()
-            if i.id in count_active:
-                count_active.remove(i.id)
-            # 入力開始したけど終了していない場合に、入力開始時の時刻を削除
-            if i.id in time_dic:
-                del time_dic[i.id]
+        if str(level + 1) not in susida_dict:
+            embed = discord.Embed(title='エラー：キャンセルしました',
+                                  description='レベルの番号以外が入力されました。\n半角数字で、レベルの番号を入力して下さい。', color=discord.Color.red())
+            await wizzard.edit(embed=embed)
+            return
+        question_num = 0
+        question_num_dict[message.channel.id] = question_num
+        level_dict[message.channel.id] = level
+        embed = discord.Embed(title='参加する人はリアクションを押して下さい。',
+                              description='参加する人は<:sanka:749562970345832469>のリアクションを押して下さい。\n➡のリアクションで募集を締め切ります。')
+        await wizzard.edit(embed=embed)
+        await wizzard.add_reaction('<:sanka:749562970345832469>')
+        await wizzard.add_reaction('➡')
+        level_loop = True
+        while level_loop is True:
+            print('reaction')
+            reaction, user = await client.wait_for('reaction_add', check=reaction_check)
+            if str(reaction) == '➡':
+                break
+            if user.id in competitor_time[message.channel.id]:
+                continue
+            if user.id in competitor_status:
+                await message.channel.send('<@' + str(user.id) + '>既に他のチャンネル/サーバーでゲームに参加しています。')
+                continue
+            competitor_time[message.channel.id][user.id] = []
+            competitor_status[user.id] = 'answering'
             continue
+        await wizzard.remove_reaction(emoji='➡', member=client.get_user(539910964724891719))
+        await wizzard.remove_reaction(emoji='<:sanka:749562970345832469>', member=client.get_user(539910964724891719))
+        embed = discord.Embed(title='第' + str(question_num+1) + '問',
+                              description=susida_dict[str(level)][question_num][1])
+        start_time_dict[message.channel.id] = time.time()
+        await message.channel.send(embed=embed)
+        return
+
+    elif message.content == '終了':
+        if message.channel.id not in competitor_time:
+            await message.channel.send('このチャンネルで進行中のゲームはありません。')
+            return
+        if message.author.id not in competitor_time[message.channel.id]:
+            await message.channel.send('あなたはこのチャンネルで進行中のゲームに参加していません。')
+            return
+        del level_dict[message.channel.id]
+        for user in competitor_time[message.channel.id]:
+            del competitor_status[user]
+        del competitor_time[message.channel.id]
+        del question_num_dict[message.channel.id]
+        del start_time_dict[message.channel.id]
         await message.channel.send('現在進行中のゲームを終了しました。')
         return
 
-    # 次の問題
-    # 今ゲームが進行中かどうかのチェック
-    if message.guild.id in q_num_dic:
-        if message.content == '次':
-            # 関数化予定
-            # インデックスを取得
-            q_num = q_num_dic.get(message.guild.id)
-            # インデックスに1を足す(前回の問題から1進める)
-            q_num = q_num + 1
-            # メッセージを送信。(インデックスに1足して問題番号にしてるのは、インデックスは0から始まるから)
-            await message.channel.send('第' + str(q_num + 1) + '問\n' + '問題：' + question_list[q_num])
-            # countをactiveに()
-            count_active.append(message.author.id)
-            # 問題番号を上書き
-            q_num_dic[message.guild.id] = q_num
-            return
+    elif message.content == '次':
+        if message.channel.id in competitor_time:
+            if message.author.id in competitor_time[message.channel.id]:
+                question_num = question_num_dict[message.channel.id]
+                level = level_dict[message.channel.id]
+                question_num = question_num + 1
+                question_num_dict[message.channel.id] = question_num
+                for user in competitor_time[message.channel.id]:
+                    competitor_status[user] = 'answering'
+                embed = discord.Embed(title='第' + str(question_num+1) + '問',
+                                      description=susida_dict[str(level)][question_num][1])
+                start_time_dict[message.channel.id] = time.time()
+                await message.channel.send(embed=embed)
+                question_num_dict[message.channel.id] = question_num
 
-    # タイピング練習開始
-    if message.content == 'タイピング1':
-        # ゲームが既に進行中の場合
-        if message.guild.id in q_num_dic:
-            await message.channel.send('現在ゲームが進行中です。')
-            return
-        # 最初なのでインデックスは0
-        q_num = 0
-        # 関数化予定
-        await message.channel.send(
-            'レベル1\n13文字のタイピング練習です。15問あります。10秒後に開始します。\n**※全部ひらがなの為、IMEの学習機能を無効にされることを強くお勧めします。**')
-        await asyncio.sleep(10)
-        await message.channel.send('第1問\n' + question_list[q_num])
-        for i in message.guild.members:
-            count_active.append(i.id)
-        q_num_dic[message.guild.id] = q_num
-        return
-
-    # 解答チェック
-    if message.author.id in count_active:
-        q_num = q_num_dic.get(message.guild.id)
-        print(answer_list[q_num])
-        # 間違っていた場合
-        if message.content != answer_list[q_num]:
-            await message.channel.send('答えが間違っています。')
-            return
-        # 正解の場合
-        print(q_num)
-        # 経過時間の計算
-        end = time.time()
-        start = time_dic[message.author.id]
-        elapse = end - start + 1
-        # start時間の削除(リセット)
-        del time_dic[message.author.id]
-        # countをdeactiveに()
-        count_active.remove(message.author.id)
-        await message.channel.send(message.author.mention + '経過時間：' + str(elapse) + '秒')
-        # 最終問題の場合(インデックスが14の場合)
-        if q_num == 14:
-            # 終了時の処理そのまま。関数化予定
-            del q_num_dic[message.guild.id]
-            for i in message.guild.members:
-                if i.id in count_active:
-                    print('in')
-                    count_active.remove(i.id)
-                if i.id in time_dic:
-                    del time_dic[i.id]
-                continue
-            await message.channel.send('以上で問題は終了です。')
-        return
-
-
-# 入力検知
-@client.event
-async def on_typing(channel, user, when):
-    # ユーザーのcountがactiveかどうか確認
-    if user.id in count_active:
-        start = time.time()
-        time_dic[user.id] = start
+    elif message.channel.id in competitor_time:
+        if message.author.id in competitor_time[message.channel.id]:
+            if competitor_status[message.author.id] == 'answering':
+                question_num = question_num_dict[message.channel.id]
+                level = level_dict[message.channel.id]
+                if message.content == susida_dict[str(level)][question_num][0]:
+                    answer_end = time.time()
+                    answer_start = start_time_dict[message.channel.id]
+                    await message.channel.send(message.author.mention)
+                    embed = discord.Embed(title='正解です！',
+                                          description='解答時間：' + str(answer_end - answer_start) + '秒')
+                    await message.channel.send(embed=embed)
+                    competitor_status[message.author.id] = 'answered'
+                    competitor_time[message.channel.id][message.author.id].append(answer_end - answer_start)
+                    return
+                else:
+                    embed = discord.Embed(title=message.author.mention + '不正解です！',
+                                          description='もう一度お試し下さい。')
+                    await message.channel.send(embed=embed)
+                    return
 
 
 client.run(TOKEN)
