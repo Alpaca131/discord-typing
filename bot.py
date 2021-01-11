@@ -112,7 +112,10 @@ async def game_start(message):
         reaction, user = await client.wait_for('reaction_add', check=reaction_check)
         if str(reaction) == '➡':
             if len(competitor_time[message.channel.id]) == 0:
-                await message.channel.send('参加リアクションが押されていないため、ゲームを開始できません。')
+                await message.channel.send('参加リアクションが押されていないため、ゲームを開始できません。\n'
+                                           'ゲームをキャンセルします。')
+                await wizzard.delete()
+                return
             break
         if user.id in competitor_time[message.channel.id]:
             continue
@@ -122,8 +125,8 @@ async def game_start(message):
         competitor_time[message.channel.id][user.id] = []
         competitor_status[user.id] = 'answering'
         continue
-    await wizzard.remove_reaction(emoji='➡', member=client.get_user(736243567931949136))
-    await wizzard.remove_reaction(emoji='<:sanka:749562970345832469>', member=client.get_user(736243567931949136))
+    await wizzard.remove_reaction(emoji='➡', member=client.user)
+    await wizzard.remove_reaction(emoji='<:sanka:749562970345832469>', member=client.user)
     embed = discord.Embed(title='第' + str(question_num + 1) + '問',
                           description=random_question[message.channel.id][question_num][1])
     msg = await message.channel.send(embed=embed)
