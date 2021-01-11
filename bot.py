@@ -300,6 +300,10 @@ async def dm_commands(message):
 
 
 def global_ranking_add(player_id, score):
+    current_score = global_ranking_dict.get(str(player_id))
+    if current_score is not None:
+        if current_score < score:
+            return
     global_ranking_dict[str(player_id)] = score
     with open(ranking_file_path, 'w') as e:
         json.dump(global_ranking_dict, e, indent=4)
