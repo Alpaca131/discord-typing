@@ -61,6 +61,8 @@ async def on_message(message):
 
 
 async def game_start(message):
+    if message.channel.id in competitor_time:
+        await message.channel.send('既にこのチャンネルでゲームが進行中です。参加者の方はゲームを終了させて下さい。')
     embed = discord.Embed(title='レベルを選択して下さい', description='レベルの番号を送って下さい。',
                           color=0x85cc00)
     val = 0
@@ -120,7 +122,7 @@ async def game_start(message):
         if user.id in competitor_time[message.channel.id]:
             continue
         if user.id in competitor_status:
-            await message.channel.send(f'{user.mention} 既に他のチャンネル/サーバーでゲームに参加しています。')
+            await message.channel.send(f'{user.mention} 既に他のチャンネルでゲームに参加しています。')
             continue
         competitor_time[message.channel.id][user.id] = []
         competitor_status[user.id] = 'answering'
