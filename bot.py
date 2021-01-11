@@ -63,6 +63,7 @@ async def on_message(message):
 async def game_start(message):
     if message.channel.id in competitor_time:
         await message.channel.send('既にこのチャンネルでゲームが進行中です。参加者の方はゲームを終了させて下さい。')
+        return
     embed = discord.Embed(title='レベルを選択して下さい', description='レベルの番号を送って下さい。',
                           color=0x85cc00)
     val = 0
