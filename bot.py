@@ -251,7 +251,7 @@ async def answering(message):
                                 competitor_time[message.channel.id][message.author.id])) + '問'
                     else:
                         not_answered = 'なし'
-                        if level_dict[message.channel.id] == 10:
+                        if level_dict[message.channel.id] == 11:
                             global_save = True
                         else:
                             global_save = False
