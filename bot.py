@@ -83,7 +83,7 @@ async def game_start(message):
 
     def bot_check(m):
         return m.channel == message.channel and m.author == message.author \
-               and m.author.bot != True
+               and m.author.bot is not True
 
     level_select = await client.wait_for('message', check=bot_check)
     try:
@@ -153,7 +153,7 @@ async def end_game(message):
 async def send_global_ranking(message):
     embed = discord.Embed(title='グローバルランキング(上位10位)',
                           description='このBotが導入されている全サーバーでのランキングです。'
-                                      '\n※ランキングに載るには、レベル10で全問題に回答する必要があります。'
+                                      '\n※ランキングに載るには、レベル11(10文字)で全問題に回答する必要があります。'
                                       '\n100位までのランキングを表示するには、60秒以内に⏩のリアクションをして下さい。',
                           color=discord.Color.dark_magenta())
     global_ranking = global_ranking_sort()
@@ -184,7 +184,7 @@ async def send_global_ranking(message):
     else:
         embed = discord.Embed(title='グローバルランキング(上位100位)',
                               description='このBotが導入されている全サーバーでのランキングです。'
-                                          '\n※ランキングに載るには、レベル10で全問題に回答する必要があります。',
+                                          '\n※ランキングに載るには、レベル11(10文字)で全問題に回答する必要があります。',
                               color=discord.Color.dark_magenta())
         for list_top in global_ranking:
             if global_ranking.index(list_top) == 101:
