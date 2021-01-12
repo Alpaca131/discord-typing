@@ -43,19 +43,17 @@ async def on_message(message):
     # ヘルプをembedで送信
     elif message.content in {'!ヘルプ', '！ヘルプ'}:
         await help_message(message=message)
-    elif message.content in {'!global', '!グローバル', '！グローバル'}:
+    elif message.content in {'!ranking', '!ランキング', '！ランキング'}:
         await send_global_ranking(message=message)
     elif message.content in {'!招待', '！招待'}:
         await message.channel.send(
             'https://discord.com/api/oauth2/authorize?client_id=736243567931949136&permissions=347200&scope=bot')
-    elif message.content == '！タイピング' or message.content == '!タイピング':
+    elif message.content in {'!タイピング', '！タイピング'}:
         await game_start(message=message)
     elif message.content == '終了':
         await end_game(message=message)
-
     elif message.content == '次':
         await next_question(message)
-
     elif message.channel.id in competitor_time:
         await answering(message)
 
@@ -118,6 +116,7 @@ async def game_start(message):
                 await message.channel.send('参加リアクションが押されていないため、ゲームを開始できません。\n'
                                            'ゲームをキャンセルします。')
                 await wizzard.delete()
+                del competitor_time[message.channel.id]
                 return
             break
         if user.id in competitor_time[message.channel.id]:
@@ -171,7 +170,7 @@ async def send_global_ranking(message):
                           color=discord.Color.dark_magenta())
     global_ranking = global_ranking_sort()
     for list_top in global_ranking:
-        if global_ranking.index(list_top) == 11:
+        if global_ranking.index(list_top) == 10:
             break
         player_name = client.get_user(int(list_top[0])).name
         player_time = list_top[1]
@@ -200,7 +199,7 @@ async def send_global_ranking(message):
                                           '\n※ランキングに載るには、レベル10(11文字)で全問題に回答する必要があります。',
                               color=discord.Color.dark_magenta())
         for list_top in global_ranking:
-            if global_ranking.index(list_top) == 101:
+            if global_ranking.index(list_top) == 100:
                 break
             player_name = client.get_user(int(list_top[0])).name
             player_time = list_top[1]
@@ -294,11 +293,13 @@ async def answering(message):
 async def help_message(message):
     embed = discord.Embed(title="ヘルプ・コマンド一覧", description="こんな感じ\n問「新入生歓迎会」：解「しんにゅうせいかんげいかい」", color=0x0008ff)
     embed.add_field(name='!タイピング',
-                    value="・レベルを選択し、ゲームを開始します。\nランダムに10問出題されます。", inline=False)
+                    value="・レベルを選択し、ゲームを開始します。\n選択したレベルからランダムに10問出題されます。", inline=False)
     embed.add_field(name='次',
                     value="・次の問題を出します。\n(進行中のゲームがない場合には反応しません。)", inline=False)
-    embed.add_field(name='終了 or 終わり',
+    embed.add_field(name='終了',
                     value="・現在進行中のゲームを終了させます。", inline=False)
+    embed.add_field(name='!ランキング or !ranking',
+                    value="全サーバーでのランキングを表示します。", inline=False)
     await message.channel.send(embed=embed)
     return
 
