@@ -132,6 +132,13 @@ async def game_start(message):
     await wizzard.remove_reaction(emoji='<:sanka:749562970345832469>', member=client.user)
     embed = discord.Embed(title='第' + str(question_num + 1) + '問',
                           description=random_question[message.channel.id][question_num][1])
+    game_start_notice = await message.channel.send('3秒後にゲームを開始します。')
+    await asyncio.sleep(1)
+    await game_start_notice.edit('2秒後にゲームを開始します。')
+    await asyncio.sleep(1)
+    await game_start_notice.edit('1秒後にゲームを開始します。')
+    await asyncio.sleep(1)
+    await game_start_notice.delete()
     msg = await message.channel.send(embed=embed)
     start_time_dict[message.channel.id] = msg.created_at.timestamp()
     return
