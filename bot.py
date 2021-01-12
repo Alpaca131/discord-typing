@@ -93,11 +93,13 @@ async def game_start(message):
         embed = discord.Embed(title='エラー：キャンセルしました',
                               description='レベルの番号以外が入力されました。\n半角数字で、レベルの番号を入力して下さい。', color=discord.Color.red())
         await wizzard.edit(embed=embed)
+        del competitor_time[message.channel.id]
         return
     if str(level) not in sushida_dict:
         embed = discord.Embed(title='エラー：キャンセルしました',
                               description='レベルの番号以外が入力されました。\n半角数字で、レベルの番号を入力して下さい。', color=discord.Color.red())
         await wizzard.edit(embed=embed)
+        del competitor_time[message.channel.id]
         return
     question_num = 0
     question_num_dict[message.channel.id] = question_num
