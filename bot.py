@@ -25,7 +25,7 @@ question_num_dict = {}
 start_time_dict = {}
 random_question = {}
 level_dict = {}
-alphabet_regex = re.compile('[A-z]+')
+alphabet_regex = re.compile('[ -~]+')
 ranking_file_path = '/home/alpaca-data/typing-data/global-ranking.json'
 with open(ranking_file_path) as f:
     global_ranking_dict: dict = json.load(f)
