@@ -324,7 +324,8 @@ async def help_message(message):
 async def dm_commands(message):
     if message.content == 'サーバー':
         await message.channel.send(str(len(client.guilds)))
-        return
+    elif message.content == '使用中':
+        await message.channel.send(str(len(competitor_time)))
 
 
 def global_ranking_add(player_id, score):
