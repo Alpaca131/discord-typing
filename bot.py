@@ -58,7 +58,7 @@ async def on_message(message):
         await game_start(message=message)
     elif message.content == '終了':
         await end_game(message=message)
-    elif message.content in {'次', 'next'}:
+    elif message.content in {'次', 'next', 'tugi', 'tsugi'}:
         await next_question(message)
     elif message.channel.id in competitor_time:
         await answering(message)
@@ -279,8 +279,14 @@ async def answering(message):
                             global_save = True
                         else:
                             global_save = False
+                    rounded_average = f'{average:.3f}'
+                    current_score = global_ranking_dict.get(str(message.author.id))
+                    personal_best_emoji = ''
+                    if current_score is not None:
+                        if rounded_average < current_score:
+                            personal_best_emoji = '<:personal_best:798859726850097162>'
                     embed2.add_field(name=name + 'さん',
-                                     value='平均タイム：' + f'{average:.3f}' + '秒\n未回答の問題：' + not_answered)
+                                     value=f'{personal_best_emoji}平均タイム：{rounded_average}秒\n未回答の問題：{not_answered}')
                     await message.channel.send(embed=embed2)
                     if global_save is True:
                         global_ranking_add(player_id=message.author.id, score=average)
