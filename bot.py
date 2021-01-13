@@ -283,8 +283,9 @@ async def answering(message):
                     current_score = global_ranking_dict.get(str(message.author.id))
                     personal_best_emoji = ''
                     if current_score is not None:
-                        if rounded_average < current_score:
-                            personal_best_emoji = '<:personal_best:798859726850097162>'
+                        if not_answered == 'なし':
+                            if rounded_average < current_score:
+                                personal_best_emoji = '<:personal_best:798859726850097162>'
                     embed2.add_field(name=name + 'さん',
                                      value=f'{personal_best_emoji}平均タイム：{rounded_average}秒\n未回答の問題：{not_answered}')
                     await message.channel.send(embed=embed2)
@@ -309,7 +310,12 @@ async def answering(message):
 
 
 async def help_message(message):
-    embed = discord.Embed(title="ヘルプ・コマンド一覧", description="こんな感じ\n問「新入生歓迎会」：解「しんにゅうせいかんげいかい」", color=0x0008ff)
+    embed = discord.Embed(title="ヘルプ・コマンド一覧",
+                          description="こんな感じ\n"
+                                      "問「新入生歓迎会」：解「しんにゅうせいかんげいかい」or「sinnnyuuseikanngeikai」\n"
+                                      "ひらがなもしくはローマ字で回答して下さい。\n"
+                                      "また、完答後に自己ベストが出ると<:personal_best:798859726850097162>の絵文字が表示されます。",
+                          color=0x0008ff)
     embed.add_field(name='!タイピング',
                     value="・レベルを選択し、ゲームを開始します。\n選択したレベルからランダムに10問出題されます。", inline=False)
     embed.add_field(name='次',
