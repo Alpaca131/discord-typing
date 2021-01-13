@@ -58,7 +58,7 @@ async def on_message(message):
         await game_start(message=message)
     elif message.content == '終了':
         await end_game(message=message)
-    elif message.content == '次':
+    elif message.content in {'次', 'next'}:
         await next_question(message)
     elif message.channel.id in competitor_time:
         await answering(message)
@@ -244,6 +244,8 @@ async def answering(message):
             question_num = question_num_dict[message.channel.id]
             if alphabet_regex.fullmatch(message.content):
                 message.content = rome_to_hiragana(message.content)
+                message.content = message.content.replace('!', '！')
+                message.content = message.content.replace('?', '？')
             if message.content == random_question[message.channel.id][question_num][0]:
                 answer_end = message.created_at.timestamp()
                 answer_start = start_time_dict[message.channel.id]
