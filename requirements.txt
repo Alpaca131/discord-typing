@@ -1,3 +1,4 @@
 discord.py
-numpy~=1.19.5
-python-dotenv~=0.15.0
+numpy
+python-dotenv
+pyokaka

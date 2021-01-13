@@ -1,9 +1,12 @@
-import discord
-import random
-from datetime import datetime, timedelta, timezone
-import json
-import numpy
 import asyncio
+import json
+import random
+import re
+from datetime import datetime, timedelta, timezone
+
+import discord
+import numpy
+from pyokaka import okaka
 
 import settings
 
@@ -22,6 +25,7 @@ question_num_dict = {}
 start_time_dict = {}
 random_question = {}
 level_dict = {}
+alphabet_regex = re.compile('[A-z]+')
 ranking_file_path = '/home/alpaca-data/typing-data/global-ranking.json'
 with open(ranking_file_path) as f:
     global_ranking_dict: dict = json.load(f)
@@ -31,6 +35,7 @@ with open(ranking_file_path) as f:
 async def on_ready():
     await client.change_presence(activity=discord.Game(name="「!ヘルプ」でヘルプ", type=1))
     print('ready')
+    print(okaka.convert('tesuto'))
 
 
 @client.event
@@ -236,6 +241,8 @@ async def answering(message):
     if message.author.id in competitor_time[message.channel.id]:
         if competitor_status[message.author.id] == 'answering':
             question_num = question_num_dict[message.channel.id]
+            if alphabet_regex.fullmatch(message.content):
+                message.content = okaka.convert(message.content)
             if message.content == random_question[message.channel.id][question_num][0]:
                 answer_end = message.created_at.timestamp()
                 answer_start = start_time_dict[message.channel.id]
