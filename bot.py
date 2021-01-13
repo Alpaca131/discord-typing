@@ -279,19 +279,8 @@ async def answering(message):
                             global_save = True
                         else:
                             global_save = False
-                    rounded_average = f'{average:.3f}'
-                    current_score = global_ranking_dict.get(str(message.author.id))
-                    personal_best = False
-                    if current_score is not None:
-                        if not_answered == 'なし':
-                            if rounded_average < current_score:
-                                personal_best = True
-                    if personal_best:
-                        content = f'<:personal_best:798859726850097162>平均タイム：{rounded_average}秒\n未回答の問題：{not_answered}'
-                    else:
-                        content = f'平均タイム：{rounded_average}秒\n未回答の問題：{not_answered}'
                     embed2.add_field(name=name + 'さん',
-                                     value=content)
+                                     value='平均タイム：' + f'{average:.3f}' + '秒\n未回答の問題：' + not_answered)
                     await message.channel.send(embed=embed2)
                     if global_save is True:
                         global_ranking_add(player_id=message.author.id, score=average)
