@@ -6,13 +6,15 @@ from datetime import datetime, timedelta, timezone
 
 import discord
 import numpy
-from pyokaka import okaka
 
 import settings
+from google_input import FilterRuleTable, GoogleInput
 
 TOKEN = settings.TOKEN
 client = discord.Client(intents=discord.Intents.all())
 jst = timezone(timedelta(hours=9), 'JST')
+table = FilterRuleTable.from_file("google_ime_default_roman_table.txt")
+gi = GoogleInput(table)
 dt_now = datetime.now(jst)
 count_active = []
 time_dic = {}
@@ -35,7 +37,6 @@ with open(ranking_file_path) as f:
 async def on_ready():
     await client.change_presence(activity=discord.Game(name="「!ヘルプ」でヘルプ", type=1))
     print('ready')
-    print(okaka.convert('tesuto'))
 
 
 @client.event
@@ -242,7 +243,7 @@ async def answering(message):
         if competitor_status[message.author.id] == 'answering':
             question_num = question_num_dict[message.channel.id]
             if alphabet_regex.fullmatch(message.content):
-                message.content = okaka.convert(message.content)
+                message.content = rome_to_hiragana(message.content)
             if message.content == random_question[message.channel.id][question_num][0]:
                 answer_end = message.created_at.timestamp()
                 answer_start = start_time_dict[message.channel.id]
@@ -363,6 +364,18 @@ def generate_ranking_embed(message):
 
 def generate_average_embed(message):
     pass
+
+
+def rome_to_hiragana(input_string):
+    output = ""
+    for c in input_string:
+        result = gi.input(c)
+        if result.fixed:
+            output += result.fixed.output
+        else:
+            if not result.tmp_fixed and not result.next_candidates:
+                output += result.input
+    return output
 
 
 client.run(TOKEN)
