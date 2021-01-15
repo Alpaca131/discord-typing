@@ -246,6 +246,7 @@ async def answering(message):
                 message.content = rome_to_hiragana(message.content)
                 message.content = message.content.replace('!', '！')
                 message.content = message.content.replace('?', '？')
+                message.content = message.content.strip()
             if message.content == random_question[message.channel.id][question_num][0]:
                 answer_end = message.created_at.timestamp()
                 answer_start = start_time_dict[message.channel.id]
