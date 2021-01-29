@@ -182,7 +182,7 @@ async def send_global_ranking(message):
             break
         player = client.get_user(int(list_top[0]))
         if player is None:
-            player = client.fetch_user(int(list_top[0]))
+            player = await client.fetch_user(int(list_top[0]))
         player_time = list_top[1]
         embed.add_field(name='［' + str(global_ranking.index(list_top) + 1) + '位］' + player.name + 'さん',
                         value='平均タイム：' + f'{player_time:.3f}' + '秒',
@@ -213,7 +213,7 @@ async def send_global_ranking(message):
                 break
             player = client.get_user(int(list_top[0]))
             if player is None:
-                player = client.fetch_user(int(list_top[0]))
+                player = await client.fetch_user(int(list_top[0]))
             player_name = player.name
             player_time = list_top[1]
             embed.add_field(name='［' + str(global_ranking.index(list_top) + 1) + '位］' + player_name + 'さん',
