@@ -177,15 +177,24 @@ async def send_global_ranking(message):
                                       '\n100位までのランキングを表示するには、60秒以内に⏩のリアクションをして下さい。',
                           color=discord.Color.dark_magenta())
     global_ranking = global_ranking_sort()
-    for list_top in global_ranking:
-        if global_ranking.index(list_top) == 10:
-            break
-        player_name = client.get_user(int(list_top[0])).name
-        player_time = list_top[1]
-        embed.add_field(name='［' + str(global_ranking.index(list_top) + 1) + '位］' + player_name + 'さん',
-                        value='平均タイム：' + f'{player_time:.3f}' + '秒',
-                        inline=False)
-        continue
+    trying = True
+    while trying is True:
+        global_ranking_clone = global_ranking
+        for list_top in global_ranking_clone:
+            if global_ranking.index(list_top) == 10:
+                trying = False
+                break
+            player = client.get_user(int(list_top[0]))
+            if player is None:
+                global_ranking.remove(list_top)
+                trying = True
+                break
+            player_time = list_top[1]
+            embed.add_field(name=f'［{global_ranking_clone.index(list_top) + 1}位］{player.name}さん',
+                            value='平均タイム：' + f'{player_time:.3f}' + '秒',
+                            inline=False)
+            trying = False
+            continue
     ranking_msg = await message.channel.send(embed=embed)
     await ranking_msg.add_reaction('⏩')
 
@@ -206,15 +215,24 @@ async def send_global_ranking(message):
                               description='このBotが導入されている全サーバーでのランキングです。'
                                           '\n※ランキングに載るには、レベル10(11文字)で全問題に回答する必要があります。',
                               color=discord.Color.dark_magenta())
-        for list_top in global_ranking:
-            if global_ranking.index(list_top) == 100:
-                break
-            player_name = client.get_user(int(list_top[0])).name
-            player_time = list_top[1]
-            embed.add_field(name='［' + str(global_ranking.index(list_top) + 1) + '位］' + player_name + 'さん',
-                            value='平均タイム：' + f'{player_time:.3f}' + '秒',
-                            inline=False)
-            continue
+        trying = True
+        while trying is True:
+            global_ranking_clone = global_ranking
+            for list_top in global_ranking_clone:
+                if global_ranking.index(list_top) == 100:
+                    trying = False
+                    break
+                player = client.get_user(int(list_top[0]))
+                if player is None:
+                    global_ranking.remove(list_top)
+                    trying = True
+                    break
+                player_time = list_top[1]
+                embed.add_field(name=f'［{global_ranking_clone.index(list_top) + 1}位］{player.name}さん',
+                                value='平均タイム：' + f'{player_time:.3f}' + '秒',
+                                inline=False)
+                trying = False
+                continue
         await ranking_msg.edit(embed=embed)
     return
 
