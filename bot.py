@@ -8,6 +8,7 @@ import discord
 import numpy
 
 import settings
+from classes import GameInfo
 from google_input import FilterRuleTable, GoogleInput
 
 TOKEN = settings.TOKEN
@@ -21,12 +22,14 @@ time_dic = {}
 q_num_dic = {}
 with open('susida.json', encoding='utf-8') as f:
     sushida_dict = json.load(f)
-competitor_time = {}
-competitor_status = {}
-question_num_dict = {}
-start_time_dict = {}
-random_question = {}
-level_dict = {}
+# competitor_time = {}
+# competitor_status = {}
+# question_num_dict = {}
+# start_time_dict = {}
+# random_question = {}
+# word_count_dict = {}
+player_list = []
+ongoing_game_dict = {}
 alphabet_regex = re.compile('[ -~]+')
 ranking_file_path = '/home/alpaca-data/typing-data/global-ranking.json'
 with open(ranking_file_path) as f:
@@ -60,15 +63,23 @@ async def on_message(message):
         await end_game(message=message)
     elif message.content in {'次', 'next', 'tugi', 'tsugi'}:
         await next_question(message)
-    elif message.channel.id in competitor_time:
+    elif message.channel.id in ongoing_game_dict:
         await answering(message)
 
 
 async def game_start(message):
-    if message.channel.id in competitor_time:
+    if message.channel.id in ongoing_game_dict:
         await message.channel.send('既にこのチャンネルでゲームが進行中です。参加者の方はゲームを終了させて下さい。')
         return
-    embed = discord.Embed(title='レベルを選択して下さい', description='レベルの番号を送って下さい。',
+    game_info = GameInfo(channel_id=message.channel.id)
+    # モバイルかどうか判別
+    if message.author.is_mobile():
+        embed_title = '📱レベルを選択して下さい'
+        game_info.is_mobile = True
+    else:
+        embed_title = 'レベルを選択して下さい'
+        game_info.is_mobile = False
+    embed = discord.Embed(title=embed_title, description='レベルの番号を送って下さい。',
                           color=0x85cc00)
     val = 0
     while val < 15:
@@ -79,7 +90,7 @@ async def game_start(message):
         embed.add_field(name='［' + str(val) + '］' + str(val + 1) + '文字', value=str(val + 1) + '文字の問題です。',
                         inline=False)
     wizzard = await message.channel.send(embed=embed)
-    competitor_time[message.channel.id] = {}
+    # competitor_time[message.channel.id] = {}
 
     def reaction_check(reaction, user):
         if reaction.message.id == wizzard.id:
@@ -94,23 +105,26 @@ async def game_start(message):
 
     level_select = await client.wait_for('message', check=bot_check)
     try:
-        level = int(level_select.content) + 1
+        word_count = int(level_select.content) + 1
     except ValueError:
         embed = discord.Embed(title='エラー：キャンセルしました',
                               description='レベルの番号以外が入力されました。\n半角数字で、レベルの番号を入力して下さい。', color=discord.Color.red())
         await wizzard.edit(embed=embed)
-        del competitor_time[message.channel.id]
+        # del competitor_time[message.channel.id]
         return
-    if str(level) not in sushida_dict:
+    if str(word_count) not in sushida_dict:
         embed = discord.Embed(title='エラー：キャンセルしました',
                               description='レベルの番号以外が入力されました。\n半角数字で、レベルの番号を入力して下さい。', color=discord.Color.red())
         await wizzard.edit(embed=embed)
-        del competitor_time[message.channel.id]
+        # del competitor_time[message.channel.id]
         return
-    question_num = 0
-    question_num_dict[message.channel.id] = question_num
-    random_question[message.channel.id] = random.sample(sushida_dict[str(level)], 10)
-    level_dict[message.channel.id] = level
+    question_list_index = 0
+    # question_num_dict[message.channel.id] = question_list_index
+    game_info.question_index_num = question_list_index
+    # random_question[message.channel.id] = random.sample(sushida_dict[str(level)], 10)
+    game_info.question_list = random.sample(sushida_dict[str(word_count)], 10)
+    # word_count_dict[message.channel.id] = level
+    game_info.word_count = word_count
     embed = discord.Embed(title='参加する人はリアクションを押して下さい。',
                           description='参加する人は<:sanka:749562970345832469>のリアクションを押して下さい。\n➡のリアクションで募集を締め切ります。')
     await wizzard.edit(embed=embed)
@@ -120,25 +134,28 @@ async def game_start(message):
     while level_loop is True:
         reaction, user = await client.wait_for('reaction_add', check=reaction_check)
         if str(reaction) == '➡':
-            if len(competitor_time[message.channel.id]) == 0:
+            # if len(competitor_time[message.channel.id]) == 0:
+            if len(game_info.player_list) == 0:
                 await message.channel.send('参加リアクションが押されていないため、ゲームを開始できません。\n'
                                            'ゲームをキャンセルします。')
                 await wizzard.delete()
-                del competitor_time[message.channel.id]
+                # del competitor_time[message.channel.id]
                 return
             break
-        if user.id in competitor_time[message.channel.id]:
+        if user.id in game_info.player_list:
             continue
-        if user.id in competitor_status:
-            await message.channel.send(f'{user.mention} 既に他のチャンネルでゲームに参加しています。')
+        if user.id in player_list:
+            await message.channel.send(f'{user.mention} 既に他のゲームに参加しています。先にそちらを終了させてください。')
             continue
-        competitor_time[message.channel.id][user.id] = []
-        competitor_status[user.id] = 'answering'
+        # competitor_time[message.channel.id][user.id] = []
+        player_list.append(user.id)
+        # competitor_status[user.id] = 'answering'
+        game_info.add_player(user.id)
         continue
     await wizzard.remove_reaction(emoji='➡', member=client.user)
     await wizzard.remove_reaction(emoji='<:sanka:749562970345832469>', member=client.user)
-    embed = discord.Embed(title='第' + str(question_num + 1) + '問',
-                          description=random_question[message.channel.id][question_num][1])
+    embed = discord.Embed(title='第' + str(question_list_index + 1) + '問',
+                          description=game_info.question_list[question_list_index][1])
     game_start_notice = await message.channel.send('3秒後にゲームを開始します。')
     await asyncio.sleep(1)
     await game_start_notice.edit(content='2秒後にゲームを開始します。')
@@ -147,25 +164,24 @@ async def game_start(message):
     await asyncio.sleep(1)
     await game_start_notice.delete()
     msg = await message.channel.send(embed=embed)
-    start_time_dict[message.channel.id] = msg.created_at.timestamp()
+    game_info.start_time = msg.created_at.timestamp()
+    ongoing_game_dict[message.channel.id] = game_info
     return
 
 
 async def end_game(message):
-    if message.channel.id not in competitor_time:
+    if message.channel.id not in ongoing_game_dict:
         await message.channel.send('このチャンネルで進行中のゲームはありません。')
         return
-    if message.author.id not in competitor_time[message.channel.id]:
+    game_info = get_game_info(message.channel.id)
+    if message.author.id not in game_info.player_list:
         await message.channel.send('あなたはこのチャンネルで進行中のゲームに参加していません。')
         return
-    embed2 = generate_ranking_embed(message)
-    await message.channel.send(embed=embed2)
-    del random_question[message.channel.id]
-    for user in competitor_time[message.channel.id]:
-        del competitor_status[user]
-    del competitor_time[message.channel.id]
-    del question_num_dict[message.channel.id]
-    del start_time_dict[message.channel.id]
+    embed: discord.Embed = generate_ranking_embed(message, game_info)
+    await message.channel.send(embed=embed)
+    for user_id in game_info.player_list:
+        player_list.remove(user_id)
+    del ongoing_game_dict[message.channel.id]
     await message.channel.send('現在進行中のゲームを終了しました。')
     return
 
@@ -225,80 +241,100 @@ async def send_global_ranking(message):
 
 
 async def next_question(message):
-    if message.channel.id in competitor_time:
-        if message.author.id in competitor_time[message.channel.id]:
-            question_num = question_num_dict[message.channel.id]
-            question_num = question_num + 1
-            question_num_dict[message.channel.id] = question_num
-            for user in competitor_time[message.channel.id]:
-                competitor_status[user] = 'answering'
-            if len(random_question[message.channel.id]) - 1 == question_num:
-                embed = discord.Embed(title='最終問題です！第' + str(question_num + 1) + '問',
-                                      description=random_question[message.channel.id][question_num][1])
-            else:
-                embed = discord.Embed(title='第' + str(question_num + 1) + '問',
-                                      description=random_question[message.channel.id][question_num][1])
-            msg = await message.channel.send(embed=embed)
-            start_time_dict[message.channel.id] = msg.created_at.timestamp()
-            question_num_dict[message.channel.id] = question_num
+    game_info: GameInfo = get_game_info(message.channel.id)
+    if game_info is None:
+        return
+    if message.author.id not in game_info.player_list:
+        return 
+    question_index_num = game_info.question_index_num
+    # 問題番号を1追加
+    question_index_num = question_index_num + 1
+    not_answered_player = ""
+    for user_id in game_info.player_list:
+        if game_info.competitor_status[user_id] != 'answered':
+            not_answered_player = f'{not_answered_player}{client.get_user(user_id).name}\n'
+    if len(not_answered_player) != 0:
+        await message.channel.send('問題に未回答の人がいます。次の問題に進めてよろしいですか？\n'
+                                   '進める場合は、もう一度「次」と入力してください。\n'
+                                   '未回答の人：\n```'+not_answered_player+'```')
+        def bot_check(m):
+            return m.channel == message.channel and m.author == message.author \
+                   and m.author.bot is not True
+
+        next_question_confirm = await client.wait_for('message', check=bot_check)
+        if next_question_confirm.content != '次':
+            return
+    for user_id in game_info.player_list:
+        game_info.competitor_status[user_id] = 'answering'
+    if len(game_info.question_list) - 1 == question_index_num:
+        embed_title = f'最終問題です！第{question_index_num + 1}問'
+    else:
+        embed_title = f'第{question_index_num + 1}問'
+    embed = discord.Embed(title=embed_title,
+                          description=game_info.question_list[question_index_num][1])
+    msg = await message.channel.send(embed=embed)
+    game_info.start_time = msg.created_at.timestamp()
+    game_info.question_index_num = question_index_num
+    ongoing_game_dict[message.channel.id] = game_info
 
 
 async def answering(message):
-    if message.author.id in competitor_time[message.channel.id]:
-        if competitor_status[message.author.id] == 'answering':
-            question_num = question_num_dict[message.channel.id]
+    game_info = get_game_info(message.channel.id)
+    if game_info is None:
+        return
+    if message.author.id in game_info.player_list:
+        if game_info.competitor_status[message.author.id] == 'answering':
+            question_index_num = game_info.question_index_num
             if alphabet_regex.fullmatch(message.content):
                 message.content = rome_to_hiragana(message.content)
                 message.content = message.content.replace('!', '！')
                 message.content = message.content.replace('?', '？')
                 message.content = message.content.strip()
-            if message.content == random_question[message.channel.id][question_num][0]:
-                answer_end = message.created_at.timestamp()
-                answer_start = start_time_dict[message.channel.id]
+            answer = game_info.question_list[question_index_num][0]
+            if message.content == answer:
+                end_time = message.created_at.timestamp()
+                start_time = game_info.start_time
                 embed = discord.Embed(title='正解です！',
-                                      description='解答時間：' + str(answer_end - answer_start) + '秒')
+                                      description='解答時間：' + str(end_time - start_time) + '秒')
                 await message.channel.send(message.author.mention, embed=embed)
-                if len(random_question[message.channel.id]) - 1 == question_num:
-                    competitor_status[message.author.id] = 'ended'
+                if len(game_info.question_list) - 1 == question_index_num:
+                    game_info.competitor_status[message.author.id] = 'ended'
                 else:
-                    competitor_status[message.author.id] = 'answered'
-                competitor_time[message.channel.id][message.author.id].append(answer_end - answer_start)
+                    game_info.competitor_status[message.author.id] = 'answered'
+                game_info.competitor_time_list[message.author.id].append(end_time - start_time)
                 finished_user_count = 0
-                for user in competitor_time[message.channel.id]:
-                    if competitor_status[user] == 'ended':
+                for user_id in game_info.player_list:
+                    if game_info.competitor_status[user_id] == 'ended':
                         finished_user_count = finished_user_count + 1
-                if len(random_question[message.channel.id]) - 1 == question_num:
-                    competitor_status[message.author.id] = 'ended'
+                if len(game_info.question_list) - 1 == question_index_num:
+                    game_info.competitor_status[message.author.id] = 'ended'
                     embed2 = discord.Embed(title='平均タイム',
                                            description='あなたの平均タイムです', color=discord.Color.dark_teal())
                     name = message.author.name
-                    average = numpy.average(competitor_time[message.channel.id][message.author.id])
-                    if len(competitor_time[message.channel.id][message.author.id]) != len(
-                            random_question[message.channel.id]):
+                    average = numpy.average(game_info.competitor_time_list[message.author.id])
+                    if len(game_info.competitor_time_list[message.author.id]) != len(
+                            game_info.question_list):
                         global_save = False
                         not_answered = str(
-                            len(random_question[message.channel.id]) - len(
-                                competitor_time[message.channel.id][message.author.id])) + '問'
+                            len(game_info.question_list) - len(
+                                game_info.competitor_time_list[message.author.id])) + '問'
                     else:
                         not_answered = 'なし'
-                        if level_dict[message.channel.id] == 11:
+                        if game_info.word_count == 11:
                             global_save = True
                         else:
                             global_save = False
                     embed2.add_field(name=name + 'さん',
-                                     value='平均タイム：' + f'{average:.3f}' + '秒\n未回答の問題：' + not_answered)
+                                     value=f'平均タイム：{average:.3f}秒\n未回答の問題：{not_answered}')
                     await message.channel.send(embed=embed2)
                     if global_save is True:
                         global_ranking_add(player_id=message.author.id, score=average)
-                if finished_user_count == len(competitor_time[message.channel.id]):
-                    embed2 = generate_ranking_embed(message)
-                    del random_question[message.channel.id]
-                    for user in competitor_time[message.channel.id]:
-                        del competitor_status[user]
-                    del competitor_time[message.channel.id]
-                    del question_num_dict[message.channel.id]
-                    del start_time_dict[message.channel.id]
-                    del level_dict[message.channel.id]
+                ongoing_game_dict[message.channel.id] = game_info
+                if finished_user_count == len(game_info.competitor_time_list):
+                    embed2 = generate_ranking_embed(message, game_info)
+                    for user_id in game_info.player_list:
+                        player_list.remove(user_id)
+                    del ongoing_game_dict[message.channel.id]
                     await message.channel.send('ゲームが終了しました', embed=embed2)
                 return
             else:
@@ -331,7 +367,7 @@ async def dm_commands(message):
     if message.content == 'サーバー':
         await message.channel.send(str(len(client.guilds)))
     elif message.content == '使用中':
-        await message.channel.send(str(len(competitor_time)))
+        await message.channel.send(str(len(ongoing_game_dict.keys())))
 
 
 def global_ranking_add(player_id, score):
@@ -350,24 +386,24 @@ def global_ranking_sort():
     return global_ranking
 
 
-def generate_ranking_embed(message):
+def generate_ranking_embed(message, game_info: GameInfo):
     embed = discord.Embed(title='平均タイム',
                           description='参加者の平均タイムです', color=discord.Color.red())
     competitor_average_time = {}
-    for player in competitor_time[message.channel.id]:
-        average = numpy.average(competitor_time[message.channel.id][player])
-        competitor_average_time[player] = average
+    for user_id in game_info.player_list:
+        average = numpy.average(game_info.competitor_time_list[user_id])
+        competitor_average_time[user_id] = average
     competitor_ranking = sorted(competitor_average_time.items(), key=lambda x: x[1])
     for val in competitor_ranking:
         player_id = val[0]
         player_time = val[1]
         rank = competitor_ranking.index(val) + 1
         name = client.get_user(player_id).name
-        if len(competitor_time[message.channel.id][player_id]) != len(
-                random_question[message.channel.id]):
+        if len(game_info.competitor_time_list[player_id]) != len(
+                game_info.question_list):
             not_answered = str(
-                len(random_question[message.channel.id]) - len(
-                    competitor_time[message.channel.id][player_id])) + '問'
+                len(game_info.question_list) - len(
+                    game_info.competitor_time_list[player_id])) + '問'
         else:
             not_answered = 'なし'
         embed.add_field(name='［' + str(rank) + '位］' + name + 'さん',
@@ -390,6 +426,11 @@ def rome_to_hiragana(input_string):
             if not result.tmp_fixed and not result.next_candidates:
                 output += result.input
     return output
+
+
+def get_game_info(channel_id: int):
+    game_info: GameInfo = ongoing_game_dict.get(channel_id)
+    return game_info
 
 
 client.run(TOKEN)
