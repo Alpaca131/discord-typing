@@ -22,12 +22,6 @@ time_dic = {}
 q_num_dic = {}
 with open('susida.json', encoding='utf-8') as f:
     sushida_dict = json.load(f)
-# competitor_time = {}
-# competitor_status = {}
-# question_num_dict = {}
-# start_time_dict = {}
-# random_question = {}
-# word_count_dict = {}
 player_list = []
 ongoing_game_dict = {}
 alphabet_regex = re.compile('[ -~]+')
@@ -73,12 +67,10 @@ async def game_start(message):
         return
     game_info = GameInfo(channel_id=message.channel.id)
     # モバイルかどうか判別
-    if message.author.is_mobile():
+    if message.author.is_on_mobile():
         embed_title = '📱レベルを選択して下さい'
-        game_info.is_mobile = True
     else:
         embed_title = 'レベルを選択して下さい'
-        game_info.is_mobile = False
     embed = discord.Embed(title=embed_title, description='レベルの番号を送って下さい。',
                           color=0x85cc00)
     val = 0
@@ -90,7 +82,6 @@ async def game_start(message):
         embed.add_field(name='［' + str(val) + '］' + str(val + 1) + '文字', value=str(val + 1) + '文字の問題です。',
                         inline=False)
     wizzard = await message.channel.send(embed=embed)
-    # competitor_time[message.channel.id] = {}
 
     def reaction_check(reaction, user):
         if reaction.message.id == wizzard.id:
@@ -119,11 +110,8 @@ async def game_start(message):
         # del competitor_time[message.channel.id]
         return
     question_list_index = 0
-    # question_num_dict[message.channel.id] = question_list_index
     game_info.question_index_num = question_list_index
-    # random_question[message.channel.id] = random.sample(sushida_dict[str(level)], 10)
     game_info.question_list = random.sample(sushida_dict[str(word_count)], 10)
-    # word_count_dict[message.channel.id] = level
     game_info.word_count = word_count
     embed = discord.Embed(title='参加する人はリアクションを押して下さい。',
                           description='参加する人は<:sanka:749562970345832469>のリアクションを押して下さい。\n➡のリアクションで募集を締め切ります。')
@@ -134,12 +122,10 @@ async def game_start(message):
     while level_loop is True:
         reaction, user = await client.wait_for('reaction_add', check=reaction_check)
         if str(reaction) == '➡':
-            # if len(competitor_time[message.channel.id]) == 0:
             if len(game_info.player_list) == 0:
                 await message.channel.send('参加リアクションが押されていないため、ゲームを開始できません。\n'
                                            'ゲームをキャンセルします。')
                 await wizzard.delete()
-                # del competitor_time[message.channel.id]
                 return
             break
         if user.id in game_info.player_list:
@@ -147,10 +133,8 @@ async def game_start(message):
         if user.id in player_list:
             await message.channel.send(f'{user.mention} 既に他のゲームに参加しています。先にそちらを終了させてください。')
             continue
-        # competitor_time[message.channel.id][user.id] = []
         player_list.append(user.id)
-        # competitor_status[user.id] = 'answering'
-        game_info.add_player(user.id)
+        game_info.add_player(user.id, is_mobile=user.is_on_mobile)
         continue
     await wizzard.remove_reaction(emoji='➡', member=client.user)
     await wizzard.remove_reaction(emoji='<:sanka:749562970345832469>', member=client.user)
