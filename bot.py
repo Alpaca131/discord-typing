@@ -17,9 +17,6 @@ jst = timezone(timedelta(hours=9), 'JST')
 table = FilterRuleTable.from_file("google_ime_default_roman_table.txt")
 gi = GoogleInput(table)
 dt_now = datetime.now(jst)
-count_active = []
-time_dic = {}
-q_num_dic = {}
 with open('susida.json', encoding='utf-8') as f:
     sushida_dict = json.load(f)
 player_list = []
@@ -38,7 +35,6 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    global count_active
     if message.author.bot:
         return
     if message.guild is None:
@@ -101,13 +97,11 @@ async def game_start(message):
         embed = discord.Embed(title='エラー：キャンセルしました',
                               description='レベルの番号以外が入力されました。\n半角数字で、レベルの番号を入力して下さい。', color=discord.Color.red())
         await wizzard.edit(embed=embed)
-        # del competitor_time[message.channel.id]
         return
     if str(word_count) not in sushida_dict:
         embed = discord.Embed(title='エラー：キャンセルしました',
                               description='レベルの番号以外が入力されました。\n半角数字で、レベルの番号を入力して下さい。', color=discord.Color.red())
         await wizzard.edit(embed=embed)
-        # del competitor_time[message.channel.id]
         return
     question_list_index = 0
     game_info.question_index_num = question_list_index
@@ -276,6 +270,9 @@ async def answering(message):
                 message.content = message.content.strip()
             answer = game_info.question_list[question_index_num][0]
             if message.content == answer:
+                if message.author.id in game_info.mobile_player_list:
+                    if not message.author.is_on_mobile:
+                        game_info.mobile_player_list.remove(message.author.id)
                 end_time = message.created_at.timestamp()
                 start_time = game_info.start_time
                 embed = discord.Embed(title='正解です！',

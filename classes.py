@@ -1,6 +1,6 @@
 class GameInfo:
     def __init__(self, channel_id: int):
-        self.mobile_player = []
+        self.mobile_player_list = []
         self.competitor_time_list = {}
         self.competitor_status = {}
         self.start_time = int()
@@ -15,7 +15,7 @@ class GameInfo:
         self.competitor_time_list[member_id] = []
         self.competitor_status[member_id] = 'answering'
         if is_mobile:
-            self.mobile_player.append(member_id)
+            self.mobile_player_list.append(member_id)
 
     def remove_player(self, member_id: int):
         self.player_list.remove(member_id)
