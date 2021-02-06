@@ -159,9 +159,10 @@ async def end_game(message):
         await message.channel.send('このチャンネルで進行中のゲームはありません。')
         return
     game_info = get_game_info(message.channel.id)
-    if message.author.id not in game_info.player_list:
-        await message.channel.send('あなたはこのチャンネルで進行中のゲームに参加していません。')
-        return
+    if not message.channel.permissions_for(message.author).manage_messages:
+        if message.author.id not in game_info.player_list:
+            await message.channel.send('あなたはこのチャンネルで進行中のゲームに参加していません。')
+            return
     embed: discord.Embed = generate_ranking_embed(game_info)
     await message.channel.send(embed=embed)
     for user_id in game_info.player_list:
