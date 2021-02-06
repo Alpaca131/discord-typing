@@ -43,8 +43,10 @@ async def on_message(message):
     if message.guild is None:
         await dm_commands(message)
     # ヘルプをembedで送信
-    elif message.content in {'!ヘルプ', '！ヘルプ'}:
+    elif message.content in {'!ヘルプ', '！ヘルプ', '!help'}:
         await help_message(message)
+    elif message.content in {'！サポート', '!サポート', '!support'}:
+        await message.channel.send('https://discord.gg/NZabHNN')
     elif message.content in {'!ranking', '!ランキング', '！ランキング'}:
         await send_global_ranking(message)
     elif message.content in {'!m-ranking', '！スマホランキング', '！モバイルランキング', '!スマホランキング', '!モバイルランキング'}:
@@ -395,6 +397,8 @@ async def help_message(message):
                                       "ひらがなもしくはローマ字で回答して下さい。\n"
                                       "また、完答後に自己ベストが出ると<:personal_best:798859726850097162>の絵文字が表示されます。",
                           color=0x0008ff)
+    embed.add_field(name='!サポート or !support',
+                    value='Botの公式サーバーのリンクを送信します。')
     embed.add_field(name='!タイピング',
                     value="・レベルを選択し、ゲームを開始します。\n選択したレベルからランダムに10問出題されます。", inline=False)
     embed.add_field(name='次',
@@ -403,6 +407,8 @@ async def help_message(message):
                     value="・現在進行中のゲームを終了させます。", inline=False)
     embed.add_field(name='!ランキング or !ranking',
                     value="全サーバーでのランキングを表示します。", inline=False)
+    embed.add_field(name='!スマホランキング or !モバイルランキング or !m-ranking',
+                    value='モバイル版Discordでの回答のみのランキングを表示します。', inline=False)
     await message.channel.send(embed=embed)
     return
 
