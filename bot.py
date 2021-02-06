@@ -302,7 +302,9 @@ async def next_question(message):
                    and m.author.bot is not True
 
         next_question_confirm = await client.wait_for('message', check=bot_check)
-        if next_question_confirm.content != '次':
+        if next_question_confirm.content == '次':
+            pass
+        else:
             return
     for user_id in game_info.player_list:
         game_info.competitor_status[user_id] = 'answering'
