@@ -22,9 +22,12 @@ with open('susida.json', encoding='utf-8') as f:
 player_list = []
 ongoing_game_dict = {}
 alphabet_regex = re.compile('[ -~]+')
-ranking_file_path = '/home/alpaca-data/typing-data/global-ranking.json'
-with open(ranking_file_path) as f:
+global_ranking_file_path = '/home/alpaca-data/typing-data/global-ranking.json'
+mobile_ranking_file_path = '/home/alpaca-data/typing-data/mobile-ranking.json'
+with open(global_ranking_file_path) as f:
     global_ranking_dict: dict = json.load(f)
+with open(mobile_ranking_file_path) as f:
+    mobile_ranking_dict: dict = json.load(f)
 
 
 @client.event
@@ -41,16 +44,18 @@ async def on_message(message):
         await dm_commands(message)
     # ヘルプをembedで送信
     elif message.content in {'!ヘルプ', '！ヘルプ'}:
-        await help_message(message=message)
+        await help_message(message)
     elif message.content in {'!ranking', '!ランキング', '！ランキング'}:
-        await send_global_ranking(message=message)
+        await send_global_ranking(message)
+    elif message.content in {'!m-ranking', '！スマホランキング', '！モバイルランキング', '!スマホランキング', '!モバイルランキング'}:
+        await send_mobile_ranking(message)
     elif message.content in {'!招待', '！招待'}:
         await message.channel.send(
             'https://discord.com/api/oauth2/authorize?client_id=736243567931949136&permissions=347200&scope=bot')
     elif message.content in {'!タイピング', '！タイピング'}:
-        await game_start(message=message)
+        await game_start(message)
     elif message.content == '終了':
-        await end_game(message=message)
+        await end_game(message)
     elif message.content in {'次', 'next', 'tugi', 'tsugi'}:
         await next_question(message)
     elif message.channel.id in ongoing_game_dict:
@@ -155,7 +160,7 @@ async def end_game(message):
     if message.author.id not in game_info.player_list:
         await message.channel.send('あなたはこのチャンネルで進行中のゲームに参加していません。')
         return
-    embed: discord.Embed = generate_ranking_embed(message, game_info)
+    embed: discord.Embed = generate_ranking_embed(game_info)
     await message.channel.send(embed=embed)
     for user_id in game_info.player_list:
         player_list.remove(user_id)
@@ -170,7 +175,7 @@ async def send_global_ranking(message):
                                       '\n※ランキングに載るには、レベル10(11文字)で全問題に回答する必要があります。'
                                       '\n100位までのランキングを表示するには、60秒以内に⏩のリアクションをして下さい。',
                           color=discord.Color.dark_magenta())
-    global_ranking = global_ranking_sort()
+    global_ranking = ranking_sort(global_ranking_dict)
     for list_top in global_ranking:
         if global_ranking.index(list_top) == 10:
             break
@@ -218,12 +223,66 @@ async def send_global_ranking(message):
     return
 
 
+async def send_mobile_ranking(message):
+    embed = discord.Embed(title='モバイルランキング(上位10位)',
+                          description='このBotが導入されている全サーバーでのモバイル版のランキングです。'
+                                      '\n※ランキングに載るには、レベル10(11文字)で全問題に回答する必要があります。'
+                                      '\n100位までのランキングを表示するには、60秒以内に⏩のリアクションをして下さい。',
+                          color=discord.Color.dark_magenta())
+    mobile_ranking = ranking_sort(mobile_ranking_dict)
+    for list_top in mobile_ranking:
+        if mobile_ranking.index(list_top) == 10:
+            break
+        player = client.get_user(int(list_top[0]))
+        if player is None:
+            player = await client.fetch_user(int(list_top[0]))
+        player_time = list_top[1]
+        embed.add_field(name='［' + str(mobile_ranking.index(list_top) + 1) + '位］' + player.name + 'さん',
+                        value='平均タイム：' + f'{player_time:.3f}' + '秒',
+                        inline=False)
+        continue
+    ranking_msg = await message.channel.send(embed=embed)
+    await ranking_msg.add_reaction('⏩')
+
+    def reaction_check(reaction, user):
+        if reaction.message.id == ranking_msg.id:
+            if not user.bot:
+                if str(reaction) == '⏩':
+                    return True
+        return False
+
+    try:
+        reaction, user = await client.wait_for('reaction_add', check=reaction_check, timeout=60)
+    except asyncio.TimeoutError:
+        await ranking_msg.remove_reaction(emoji='⏩', member=client.get_user(736243567931949136))
+        return
+    else:
+        embed = discord.Embed(title='モバイルランキング(上位100位)',
+                              description='このBotが導入されている全サーバーでのモバイル版のランキングです。'
+                                          '\n※ランキングに載るには、レベル10(11文字)で全問題に回答する必要があります。',
+                              color=discord.Color.dark_magenta())
+        for list_top in mobile_ranking:
+            if mobile_ranking.index(list_top) == 100:
+                break
+            player = client.get_user(int(list_top[0]))
+            if player is None:
+                player = await client.fetch_user(int(list_top[0]))
+            player_name = player.name
+            player_time = list_top[1]
+            embed.add_field(name='［' + str(mobile_ranking.index(list_top) + 1) + '位］' + player_name + 'さん',
+                            value='平均タイム：' + f'{player_time:.3f}' + '秒',
+                            inline=False)
+            continue
+        await ranking_msg.edit(embed=embed)
+    return
+
+
 async def next_question(message):
     game_info: GameInfo = get_game_info(message.channel.id)
     if game_info is None:
         return
     if message.author.id not in game_info.player_list:
-        return 
+        return
     question_index_num = game_info.question_index_num
     # 問題番号を1追加
     question_index_num = question_index_num + 1
@@ -234,7 +293,8 @@ async def next_question(message):
     if len(not_answered_player) != 0:
         await message.channel.send('問題に未回答の人がいます。次の問題に進めてよろしいですか？\n'
                                    '進める場合は、もう一度「次」と入力してください。\n'
-                                   '未回答の人：\n```'+not_answered_player+'```')
+                                   '未回答の人：\n```' + not_answered_player + '```')
+
         def bot_check(m):
             return m.channel == message.channel and m.author == message.author \
                    and m.author.bot is not True
@@ -295,24 +355,27 @@ async def answering(message):
                     average = numpy.average(game_info.competitor_time_list[message.author.id])
                     if len(game_info.competitor_time_list[message.author.id]) != len(
                             game_info.question_list):
-                        global_save = False
+                        add_global_ranking = False
                         not_answered = str(
                             len(game_info.question_list) - len(
                                 game_info.competitor_time_list[message.author.id])) + '問'
                     else:
                         not_answered = 'なし'
                         if game_info.word_count == 11:
-                            global_save = True
+                            add_global_ranking = True
                         else:
-                            global_save = False
+                            add_global_ranking = False
                     embed2.add_field(name=name + 'さん',
                                      value=f'平均タイム：{average:.3f}秒\n未回答の問題：{not_answered}')
                     await message.channel.send(embed=embed2)
-                    if global_save is True:
-                        global_ranking_add(player_id=message.author.id, score=average)
+                    if add_global_ranking is True:
+                        if message.author.id in game_info.mobile_player_list:
+                            ranking_add(player_id=message.author.id, score=average, ranking='mobile')
+                        else:
+                            ranking_add(player_id=message.author.id, score=average)
                 ongoing_game_dict[message.channel.id] = game_info
                 if finished_user_count == len(game_info.competitor_time_list):
-                    embed2 = generate_ranking_embed(message, game_info)
+                    embed2 = generate_ranking_embed(game_info)
                     for user_id in game_info.player_list:
                         player_list.remove(user_id)
                     del ongoing_game_dict[message.channel.id]
@@ -351,23 +414,33 @@ async def dm_commands(message):
         await message.channel.send(str(len(ongoing_game_dict.keys())))
 
 
-def global_ranking_add(player_id, score):
-    current_score = global_ranking_dict.get(str(player_id))
-    if current_score is not None:
-        if current_score < score:
-            return
-    global_ranking_dict[str(player_id)] = score
-    with open(ranking_file_path, 'w') as e:
-        json.dump(global_ranking_dict, e, indent=4)
-    return
+def ranking_add(player_id, score, ranking='global'):
+    if ranking == 'mobile':
+        current_score = mobile_ranking_dict.get(str(player_id))
+        if current_score is not None:
+            if current_score < score:
+                return
+        mobile_ranking_dict[str(player_id)] = score
+        with open(mobile_ranking_file_path, 'w') as e:
+            json.dump(mobile_ranking_dict, e, indent=4)
+        return
+    else:
+        current_score = global_ranking_dict.get(str(player_id))
+        if current_score is not None:
+            if current_score < score:
+                return
+        global_ranking_dict[str(player_id)] = score
+        with open(global_ranking_file_path, 'w') as e:
+            json.dump(global_ranking_dict, e, indent=4)
+        return
 
 
-def global_ranking_sort():
-    global_ranking = sorted(global_ranking_dict.items(), key=lambda x: x[1])
-    return global_ranking
+def ranking_sort(ranking_dict: dict):
+    ranking = sorted(ranking_dict.items(), key=lambda x: x[1])
+    return ranking
 
 
-def generate_ranking_embed(message, game_info: GameInfo):
+def generate_ranking_embed(game_info: GameInfo):
     embed = discord.Embed(title='平均タイム',
                           description='参加者の平均タイムです', color=discord.Color.red())
     competitor_average_time = {}
