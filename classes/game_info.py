@@ -1,5 +1,6 @@
 class GameInfo:
     def __init__(self, channel_id: int):
+        self.channel_id = int()
         self.competitor_time_list = {}
         self.competitor_status = {}
         self.start_time = int()
@@ -18,3 +19,9 @@ class GameInfo:
         self.player_list.remove(member_id)
         del self.competitor_time_list[member_id]
         del self.competitor_status[member_id]
+
+    def next_question(self):
+        pass
+
+    def end_game(self):
+        pass

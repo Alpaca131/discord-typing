@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 import discord
 import numpy
 
-import settings
+import envs
 from classes import GameInfo
 from google_input import FilterRuleTable, GoogleInput
 
