@@ -32,11 +32,13 @@ async def on_ready():
 @bot.slash_command(name="ゲーム開始", guild_ids=[736242858830463117])
 async def game_start(
         ctx: discord.ApplicationContext,
-        word_count: Option(int, "問題の文字数を入力", name="文字数", min_value=2, max_value=14)
+        word_count: Option(str, "問題の文字数を選択", name="文字数", choices=[str(i) for i in range(2, 15)]) # noqa
 ):
+
     if game_funcs.is_game_exists(channel_id=ctx.channel_id):
         await ctx.respond("進行中のゲームがあります。先にそちらを終了して下さい。")
         return
+    word_count = int(word_count)
     game = GameInfo(channel_id=ctx.channel_id, word_count=word_count)
     game_funcs.save_game(game)
     view = discord.ui.View(timeout=None)
