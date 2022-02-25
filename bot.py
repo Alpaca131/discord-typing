@@ -133,7 +133,7 @@ async def game_start(message):
             await message.channel.send(f'{user.mention} 既に他のゲームに参加しています。先にそちらを終了させてください。')
             continue
         player_list.append(user.id)
-        game_info.add_player(user.id)
+        game_info.add_player(member_id=user.id)
         continue
     await wizzard.remove_reaction(emoji='➡', member=client.user)
     await wizzard.remove_reaction(emoji='<:sanka:749562970345832469>', member=client.user)
