@@ -5,21 +5,15 @@ from discord.commands import Option
 from discord.ext import commands
 
 import envs
-import game_funcs
+import games_dict_func
 from classes import button_classes
-from classes.game_info import GameInfo
-from google_input import FilterRuleTable, GoogleInput
-
-games = {}
+from classes.game_class import GameInfo
 
 
 class Bot(commands.Bot, ABC):
     def __init__(self):
         super().__init__()
 
-
-table = FilterRuleTable.from_file("google_ime_default_roman_table.txt")
-gi = GoogleInput(table)
 
 bot = Bot()
 
@@ -32,15 +26,14 @@ async def on_ready():
 @bot.slash_command(name="ゲーム開始", guild_ids=[736242858830463117])
 async def game_start(
         ctx: discord.ApplicationContext,
-        word_count: Option(str, "問題の文字数を選択", name="文字数", choices=[str(i) for i in range(2, 15)]) # noqa
+        word_count: Option(str, "問題の文字数を選択", name="文字数", choices=[str(i) for i in range(2, 15)])  # noqa
 ):
-
-    if game_funcs.is_game_exists(channel_id=ctx.channel_id):
+    if games_dict_func.is_game_exists(channel_id=ctx.channel_id):
         await ctx.respond("進行中のゲームがあります。先にそちらを終了して下さい。")
         return
     word_count = int(word_count)
     game = GameInfo(channel_id=ctx.channel_id, word_count=word_count)
-    game_funcs.save_game(game)
+    games_dict_func.save_game(game)
     view = discord.ui.View(timeout=None)
     view.add_item(button_classes.GameJoinButton())
     view.add_item(button_classes.GameLeaveButton())

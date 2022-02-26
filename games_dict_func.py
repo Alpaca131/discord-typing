@@ -1,4 +1,4 @@
-from classes.game_info import GameInfo
+from classes.game_class import GameInfo
 
 games = {}
 
