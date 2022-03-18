@@ -53,7 +53,7 @@ class GameInfo:
             elapsed_time = ctx.message.created_at.timestamp() - self.start_time
             await ctx.response.send_message(f"正解です！\nタイム：{elapsed_time}", ephemeral=False, delete_after=3)
         else:
-            pass
+            await ctx.response.send_message("不正解です。もう一度お試し下さい。")
 
 
 def generate_question_list(word_count: int):
