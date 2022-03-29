@@ -1,7 +1,7 @@
 import discord
 from discord.ui import Button
 
-import games_dict_func
+import games_func
 from classes.game_class import GameInfo
 
 
@@ -15,11 +15,11 @@ class GameJoinButton(Button):
     async def callback(self, interaction: discord.Interaction):
         user = interaction.user
         channel_id = interaction.channel_id
-        game: GameInfo = games_dict_func.get_game(channel_id)
+        game: GameInfo = games_func.get_game(channel_id)
         if user.id in game.player_list:
             return
         game.add_player(member_id=user.id)
-        games_dict_func.save_game(game)
+        games_func.save_game(game)
         await interaction.response.send_message(f"ゲームに参加しました！", ephemeral=True)
 
 
@@ -33,11 +33,11 @@ class GameLeaveButton(Button):
     async def callback(self, interaction: discord.Interaction):
         user = interaction.user
         channel_id = interaction.channel_id
-        game: GameInfo = games_dict_func.get_game(channel_id)
+        game: GameInfo = games_func.get_game(channel_id)
         if user.id not in game.player_list:
             return
         game.remove_player(user.id)
-        games_dict_func.save_game(game)
+        games_func.save_game(game)
         await interaction.response.send_message(f"ゲームから抜けました。", ephemeral=True)
 
 
@@ -51,8 +51,18 @@ class GameStartButton(Button):
     async def callback(self, interaction: discord.Interaction):
         user = interaction.user
         channel_id = interaction.channel_id
-        game: GameInfo = games_dict_func.get_game(channel_id)
+        game: GameInfo = games_func.get_game(channel_id)
+        for user_id in game.player_list:
+            game.start_answering(user_id)
+        question = game.get_next_question()
+        game.save()
+        view = discord.ui.View(timeout=None)
+        view.add_item(NextQuestionButton())
+        view.add_item(GameQuitButton())
+        embed = discord.Embed(title="問題１", description=question[0],
+                              color=discord.Color.green())
         await interaction.response.send_message(f"ゲームを開始します！", ephemeral=False)
+        await interaction.channel.send(embed=embed, view=view)
         await interaction.message.delete()
 
 
@@ -65,11 +75,10 @@ class GameQuitButton(Button):
 
     async def callback(self, interaction: discord.Interaction):
         channel_id = interaction.channel_id
-        game: GameInfo = games_dict_func.get_game(channel_id)
+        game: GameInfo = games_func.get_game(channel_id)
         game.end_game()
-        games_dict_func.remove_game(game)
+        games_func.remove_game(game)
         await interaction.response.send_message(f"ゲームを中止しました。", ephemeral=False)
-        await interaction.message.delete()
 
 
 class NextQuestionButton(Button):
@@ -81,11 +90,13 @@ class NextQuestionButton(Button):
 
     async def callback(self, interaction: discord.Interaction):
         channel_id = interaction.channel_id
-        game: GameInfo = games_dict_func.get_game(channel_id)
+        game: GameInfo = games_func.get_game(channel_id)
         next_question = game.get_next_question()
         q_kanji = next_question[1]
         q_number = game.question_index + 1
-        embed = discord.Embed(title=f"問題{q_number}：{q_kanji}")
-        games_dict_func.save_game(game)
-        q_message = await interaction.response.send_message(embed=embed)
-        game.start_answering(time=q_message.created_at.timestamp(), user_id=interaction.user.id)
+        embed = discord.Embed(title=f"問題{q_number}：{q_kanji}", color=discord.Color.green())
+        game.save()
+        view = discord.ui.View(timeout=None)
+        view.add_item(NextQuestionButton())
+        view.add_item(GameQuitButton())
+        await interaction.channel.send(embed=embed, view=view)

@@ -5,7 +5,7 @@ from discord.commands import Option
 from discord.ext import commands
 
 import envs
-import games_dict_func
+import games_func
 from classes import button_classes
 from classes.game_class import GameInfo
 
@@ -28,12 +28,12 @@ async def game_start(
         ctx: discord.ApplicationContext,
         word_count: Option(str, "問題の文字数を選択", name="文字数", choices=[str(i) for i in range(2, 15)])  # noqa
 ):
-    if games_dict_func.is_game_exists(channel_id=ctx.channel_id):
+    if games_func.is_game_exists(channel_id=ctx.channel_id):
         await ctx.respond("進行中のゲームがあります。先にそちらを終了して下さい。")
         return
     word_count = int(word_count)
     game = GameInfo(channel_id=ctx.channel_id, word_count=word_count)
-    games_dict_func.save_game(game)
+    games_func.save_game(game)
     view = discord.ui.View(timeout=None)
     view.add_item(button_classes.GameJoinButton())
     view.add_item(button_classes.GameLeaveButton())

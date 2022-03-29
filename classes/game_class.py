@@ -1,6 +1,6 @@
 import json
 import random
-import re
+import re, games_func, time
 
 import discord
 
@@ -25,6 +25,9 @@ class GameInfo:
         self.question_index = -1
         self.word_count = word_count
 
+    def save(self):
+        games_func.save_game(self)
+
     def add_player(self, member_id: int):
         self.player_list.append(member_id)
         self.competitor_time[member_id] = []
@@ -39,8 +42,8 @@ class GameInfo:
         self.question_index += 1
         return self.question_list[self.question_index]
 
-    def start_answering(self, time: int, user_id: int):
-        self.start_time = time
+    def start_answering(self, user_id: int):
+        self.start_time = time.time()
         self.competitor_status[user_id] = 'answering'
 
     def end_game(self):
