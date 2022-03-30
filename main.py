@@ -46,4 +46,11 @@ async def game_start(
     await ctx.respond(embed=embed, view=view)
 
 
+@bot.event
+async def on_message(message: discord.Message):
+    if not games_func.is_game_exists(channel_id=message.channel.id):
+        return
+    # 答え合わせの処理
+
+
 bot.run(envs.TOKEN)
