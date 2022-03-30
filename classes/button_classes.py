@@ -49,7 +49,6 @@ class GameStartButton(Button):
         )
 
     async def callback(self, interaction: discord.Interaction):
-        user = interaction.user
         channel_id = interaction.channel_id
         game: GameObj = games_func.get_game(channel_id)
         for user_id in game.player_list:

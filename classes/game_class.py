@@ -1,8 +1,9 @@
+import games_func
 import json
 import random
-import re, games_func, time
+import re
+import time
 
-import discord
 import numpy as numpy
 
 from google_input import FilterRuleTable, GoogleInput
