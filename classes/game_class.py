@@ -40,23 +40,41 @@ class GameInfo:
 
     def get_next_question(self):
         self.question_index += 1
-        return self.question_list[self.question_index]
+        return self.question_list[self.question_index][1]
 
     def start_answering(self, user_id: int):
         self.start_time = time.time()
         self.competitor_status[user_id] = 'answering'
 
+    def is_answering(self, user_id: int):
+        return self.competitor_status[user_id] == 'answering'
+
+    def is_all_player_answered(self):
+        for status in self.competitor_status.values():
+            if status != 'answered':
+                return False
+        return True
+
     def end_game(self):
         pass
 
-    async def submit_answer(self, ctx: discord.ApplicationContext, user_id: int, answer: str):
-        is_answer_right = check_answer(self, answer)
+    def submit_answer(self, user_id: int, user_answer: str):
+        """
+        is_correctは正解の場合はTrue、不正解の場合はFalse
+        Args:
+            user_id:
+            user_answer:
+
+        Returns:
+            is_correct: bool
+            elapsed_time: int
+        """
+        is_answer_right = check_answer(self, user_answer)
         if is_answer_right:
             self.competitor_status[user_id] = 'answered'
-            elapsed_time = ctx.message.created_at.timestamp() - self.start_time
-            await ctx.response.send_message(f"正解です！\nタイム：{elapsed_time}", ephemeral=False, delete_after=3)
-        else:
-            await ctx.response.send_message("不正解です。もう一度お試し下さい。")
+            elapsed_time = time.time() - self.start_time
+            return True, elapsed_time
+        return False, 0
 
 
 def generate_question_list(word_count: int):

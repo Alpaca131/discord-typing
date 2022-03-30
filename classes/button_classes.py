@@ -59,7 +59,7 @@ class GameStartButton(Button):
         view = discord.ui.View(timeout=None)
         view.add_item(NextQuestionButton())
         view.add_item(GameQuitButton())
-        embed = discord.Embed(title="問題１", description=question[0],
+        embed = discord.Embed(title=f"問題1：{question}",
                               color=discord.Color.green())
         await interaction.response.send_message(f"ゲームを開始します！", ephemeral=False)
         await interaction.channel.send(embed=embed, view=view)
@@ -91,8 +91,7 @@ class NextQuestionButton(Button):
     async def callback(self, interaction: discord.Interaction):
         channel_id = interaction.channel_id
         game: GameInfo = games_func.get_game(channel_id)
-        next_question = game.get_next_question()
-        q_kanji = next_question[1]
+        q_kanji = game.get_next_question()
         q_number = game.question_index + 1
         embed = discord.Embed(title=f"問題{q_number}：{q_kanji}", color=discord.Color.green())
         game.save()
