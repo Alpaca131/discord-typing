@@ -24,7 +24,7 @@ async def on_ready():
     print("logged in")
 
 
-@bot.slash_command(name="ゲーム開始", guild_ids=[736242858830463117])
+@bot.slash_command(name="ゲーム開始")
 async def game_start(
         ctx: discord.ApplicationContext,
         word_count: Option(str, "問題の文字数を選択", name="文字数", choices=[str(i) for i in range(2, 15)])  # noqa
