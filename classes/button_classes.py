@@ -2,7 +2,7 @@ import discord
 from discord.ui import Button
 
 import games_func
-from classes.game_class import GameInfo
+from classes.game_class import GameObj
 
 
 class GameJoinButton(Button):
@@ -15,7 +15,7 @@ class GameJoinButton(Button):
     async def callback(self, interaction: discord.Interaction):
         user = interaction.user
         channel_id = interaction.channel_id
-        game: GameInfo = games_func.get_game(channel_id)
+        game: GameObj = games_func.get_game(channel_id)
         if user.id in game.player_list:
             return
         game.add_player(member_id=user.id)
@@ -33,7 +33,7 @@ class GameLeaveButton(Button):
     async def callback(self, interaction: discord.Interaction):
         user = interaction.user
         channel_id = interaction.channel_id
-        game: GameInfo = games_func.get_game(channel_id)
+        game: GameObj = games_func.get_game(channel_id)
         if user.id not in game.player_list:
             return
         game.remove_player(user.id)
@@ -51,7 +51,7 @@ class GameStartButton(Button):
     async def callback(self, interaction: discord.Interaction):
         user = interaction.user
         channel_id = interaction.channel_id
-        game: GameInfo = games_func.get_game(channel_id)
+        game: GameObj = games_func.get_game(channel_id)
         for user_id in game.player_list:
             game.start_answering(user_id)
         question = game.get_next_question()
@@ -75,7 +75,7 @@ class GameQuitButton(Button):
 
     async def callback(self, interaction: discord.Interaction):
         channel_id = interaction.channel_id
-        game: GameInfo = games_func.get_game(channel_id)
+        game: GameObj = games_func.get_game(channel_id)
         game.end_game()
         games_func.remove_game(game)
         await interaction.response.send_message(f"ゲームを中止しました。", ephemeral=False)
@@ -90,7 +90,7 @@ class NextQuestionButton(Button):
 
     async def callback(self, interaction: discord.Interaction):
         channel_id = interaction.channel_id
-        game: GameInfo = games_func.get_game(channel_id)
+        game: GameObj = games_func.get_game(channel_id)
         q_kanji = game.get_next_question()
         q_number = game.question_index + 1
         embed = discord.Embed(title=f"問題{q_number}：{q_kanji}", color=discord.Color.green())

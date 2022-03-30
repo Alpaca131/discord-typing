@@ -15,7 +15,7 @@ gi = GoogleInput(table)
 alphabet_regex = re.compile('[ -~]+')
 
 
-class GameInfo:
+class GameObj:
     def __init__(self, channel_id: int, word_count: int):
         self.competitor_time = {}
         self.competitor_status = {}
@@ -114,7 +114,7 @@ def generate_question_list(word_count: int):
     return question_lists
 
 
-def check_answer(game: GameInfo, answer: str):
+def check_answer(game: GameObj, answer: str):
     if alphabet_regex.fullmatch(answer):
         answer = rome_to_hiragana(answer)
     answer = answer.replace('!', '！')
