@@ -3,6 +3,7 @@ import random
 import re, games_func, time
 
 import discord
+import numpy as numpy
 
 from google_input import FilterRuleTable, GoogleInput
 
@@ -73,8 +74,39 @@ class GameInfo:
         if is_answer_right:
             self.competitor_status[user_id] = 'answered'
             elapsed_time = time.time() - self.start_time
+            self.competitor_time[user_id].append(elapsed_time)
+            self.save()
             return True, elapsed_time
         return False, 0
+
+    def aggregate_user_result(self, user_id: int):
+        """
+        回答したユーザーのみ集計する
+        Args:
+            user_id:
+
+        Returns:
+            average_time: float
+        """
+        average = numpy.average(self.competitor_time[user_id])
+        not_answered_question_count = 10 - len(self.competitor_time[user_id])
+        return average, not_answered_question_count
+
+    def aggregate_all_result(self):
+        """
+        全員が回答したら、結果を集計する
+        Returns:
+            players_sorted_time: dict
+            players_not_answered_question_count: dict
+        """
+        players_average_time = {}
+        players_not_answered_question_count = {}
+        for user_id in self.player_list:
+            average = numpy.average(self.competitor_time[user_id])
+            players_average_time[user_id] = average
+            players_not_answered_question_count[user_id] = 10 - len(self.competitor_time[user_id])
+        players_sorted_time = sorted(players_average_time.items(), key=lambda x: x[1])
+        return players_sorted_time, players_not_answered_question_count
 
 
 def generate_question_list(word_count: int):
