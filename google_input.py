@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import fileinput
 
 
 class FilterRule:
@@ -9,14 +8,14 @@ class FilterRule:
     input/output/next_input はいずれも任意の文字列を設定可（半角英数に限らない）
 
     Attributes:
-        input (str): 入力文字列
-        output (str): input に対応する出力文字列
+        input_str (str): 入力文字列
+        output_str (str): input に対応する出力文字列
         next_input (str): input に対応する「次の入力」
     """
 
-    def __init__(self, input, output, next_input):
-        self.input = input
-        self.output = output
+    def __init__(self, input_str, output_str, next_input):
+        self.input = input_str
+        self.output = output_str
         self.next_input = next_input
 
 
@@ -24,15 +23,15 @@ class FilterResult:
     """ GoogleInput.input の返り値
 
     Attributes:
-        input (str): 入力した文字列
+        input_str (str): 入力した文字列
         next_input (str): ルールにマッチした場合、そのルールの「次の入力」
         tmp_fixed (FilterRule): 仮確定したルール。他にマッチするルールがなくなった際に確定する
         fixed (FilterRule): 確定したルール
         next_candidates (list(FilterRule)): input が入力されている状態で次にマッチする可能性があるルールのリスト
     """
 
-    def __init__(self, input, next_input, tmp_fixed, fixed, next_candidates):
-        self.input = input
+    def __init__(self, input_str, next_input, tmp_fixed, fixed, next_candidates):
+        self.input = input_str
         self.next_input = next_input
         self.tmp_fixed = tmp_fixed
         self.fixed = fixed
@@ -73,7 +72,8 @@ class FilterRuleTable:
                     rules.append(FilterRule(items[0], items[1], items[2]))
                 else:
                     raise Exception(
-                        f'''Definition file has a line which has less than 2 or more than 3 values. [Line {i+1}] "{line}"''')
+                        f'Definition file has a line which has less than 2 or more than 3 values. [Line {i+1}] '
+                        f'"{line}"')
         return FilterRuleTable(rules)
 
 
@@ -90,6 +90,9 @@ class GoogleInput:
     """
 
     def __init__(self, rule_table):
+        self.next_candidates = None
+        self.tmp_fixed = None
+        self.input_buffer = None
         self.rule_table = rule_table
         self.reset()
 
@@ -113,11 +116,11 @@ class GoogleInput:
             candidates = self.next_candidates
 
         next_candidates = []
-        input = self.input_buffer + char
+        input_str = self.input_buffer + char
         tmp_fixed = self.tmp_fixed
         for rule in candidates:
-            if rule.input.startswith(input):
-                if rule.input == input:
+            if rule.input.startswith(input_str):
+                if rule.input == input_str:
                     tmp_fixed = rule
                 else:
                     next_candidates.append(rule)
@@ -126,7 +129,7 @@ class GoogleInput:
             """ 次以降の入力にマッチするルールの候補がない """
             if tmp_fixed:
                 """ これまでの入力で確定したルールがある """
-                if len(tmp_fixed.input) == len(input):
+                if len(tmp_fixed.input) == len(input_str):
                     """ 今回の入力でちょうどルールにマッチした場合
                     マッチしたルールの「次の入力」が引き回される
                     """
@@ -137,16 +140,17 @@ class GoogleInput:
                     """
                     self.input_buffer = tmp_fixed.next_input + char
                 self.tmp_fixed = None
-                return FilterResult(input, self.input_buffer, None, tmp_fixed, next_candidates)
+                return FilterResult(input_str, self.input_buffer, None, tmp_fixed, next_candidates)
             else:
                 """ これまでの入力で確定したルールがない（ミス入力） """
                 self.input_buffer = ""
                 self.tmp_fixed = None
-                return FilterResult(input, "", None, None, next_candidates)
+                return FilterResult(input_str, "", None, None, next_candidates)
         else:
             """ 次以降の入力にマッチするルールの候補がある """
-            self.input_buffer = input
+            self.input_buffer = input_str
             self.tmp_fixed = tmp_fixed
-            return FilterResult(input, "", tmp_fixed, None, next_candidates)
+            return FilterResult(input_str, "", tmp_fixed, None, next_candidates)
 
-        self.next_candidates = next_candidates
+        # unreachableなのでコメントアウト
+        # self.next_candidates = next_candidates
