@@ -34,16 +34,20 @@ async def game_start(
         return
     word_count = int(word_count)
     game = GameObj(channel_id=ctx.channel_id, word_count=word_count)
-    games_func.save_game(game)
+    game.add_player(member_id=ctx.author.id)
+    game.save()
     view = discord.ui.View(timeout=None)
     view.add_item(button_classes.GameJoinButton())
     view.add_item(button_classes.GameLeaveButton())
     view.add_item(button_classes.GameStartButton())
     view.add_item(button_classes.GameQuitButton())
 
-    embed = discord.Embed(title="参加する人は参加ボタンを押して下さい。\n用意が出来たらスタートボタンでゲームを開始できます。\n\n中止ボタンでゲームを中止出来ます。",
+    embed = discord.Embed(title="参加する人は参加ボタンを押して下さい。\n"
+                                "用意が出来たらスタートボタンでゲームを開始できます。\n\n"
+                                "中止ボタンでゲームを中止出来ます。",
                           color=discord.Color.blue())
-
+    embed.add_field(name="文字数", value=f"{word_count}文字")
+    embed.add_field(name="参加者", value=ctx.author.display_name)
     await ctx.respond(embed=embed, view=view)
 
 
@@ -89,6 +93,7 @@ async def check_answer(message: discord.Message, game: GameObj):
     if not game.is_answering(user_id=message.author.id):
         return
     is_correct, elapsed_time = game.submit_answer(user_id=message.author.id, user_answer=message.content)
+    game.save()
     is_last_question = False
     if not is_correct:
         embed = discord.Embed(title="不正解です。", color=discord.Color.red())

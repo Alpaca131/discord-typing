@@ -57,9 +57,6 @@ class GameObj:
                 return False
         return True
 
-    def end_game(self):
-        pass
-
     def submit_answer(self, user_id: int, user_answer: str):
         """
         is_correctは正解の場合はTrue、不正解の場合はFalse
@@ -76,7 +73,6 @@ class GameObj:
             self.competitor_status[user_id] = 'answered'
             elapsed_time = time.time() - self.start_time
             self.competitor_time[user_id].append(elapsed_time)
-            self.save()
             return True, elapsed_time
         return False, 0
 
