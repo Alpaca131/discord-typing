@@ -4,6 +4,7 @@ from abc import ABC
 import discord
 from discord.commands import Option
 from discord.ext import commands
+from workers_kv.ext.async_workers_kv import Namespace
 
 import envs
 import games_func
@@ -17,6 +18,9 @@ class Bot(commands.Bot, ABC):
 
 
 bot = Bot()
+kv_namespace = Namespace(account_id=envs.WORKERS_KV_ACCOUNT,
+                         namespace_id=envs.WORKERS_KV_NAMESPACE,
+                         api_key=envs.CF_API_KEY)
 
 
 @bot.event
@@ -130,5 +134,7 @@ async def move_to_next_question(message: discord.Message, game: GameObj):
     view.add_item(button_classes.GameQuitButton())
     await message.channel.send(embed=embed, view=view)
 
-
-bot.run(envs.TOKEN)
+try:
+    bot.run(envs.TOKEN)
+finally:
+    pass
