@@ -2,7 +2,7 @@ import discord
 from discord.ui import Button
 
 from utils import games_func
-from classes.game_class import GameManager
+from classes.game_class import Game
 
 
 class GameJoinButton(Button):
@@ -15,7 +15,7 @@ class GameJoinButton(Button):
     async def callback(self, interaction: discord.Interaction):
         user = interaction.user
         channel_id = interaction.channel_id
-        game: GameManager = games_func.get_game(channel_id)
+        game: Game = games_func.get_game(channel_id)
         if game is None:
             return
         if user.id in game.player_list:
@@ -40,7 +40,7 @@ class GameLeaveButton(Button):
     async def callback(self, interaction: discord.Interaction):
         user = interaction.user
         channel_id = interaction.channel_id
-        game: GameManager = games_func.get_game(channel_id)
+        game: Game = games_func.get_game(channel_id)
         if game is None:
             return
         if user.id not in game.player_list:
@@ -70,7 +70,7 @@ class GameStartButton(Button):
 
     async def callback(self, interaction: discord.Interaction):
         channel_id = interaction.channel_id
-        game: GameManager = games_func.get_game(channel_id)
+        game: Game = games_func.get_game(channel_id)
         if game is None:
             return
         for user_id in game.player_list:
@@ -96,7 +96,7 @@ class GameQuitButton(Button):
 
     async def callback(self, interaction: discord.Interaction):
         channel_id = interaction.channel_id
-        game: GameManager = games_func.get_game(channel_id)
+        game: Game = games_func.get_game(channel_id)
         if game is None:
             return
         games_func.remove_game(game)
@@ -112,7 +112,7 @@ class NextQuestionButton(Button):
 
     async def callback(self, interaction: discord.Interaction):
         channel_id = interaction.channel_id
-        game: GameManager = games_func.get_game(channel_id)
+        game: Game = games_func.get_game(channel_id)
         if game is None:
             return
         question = game.get_next_question()

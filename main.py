@@ -8,7 +8,7 @@ from discord.ext import commands
 from utils import games_func, envs, rankings
 from classes import button_classes
 from classes.ranking_class import *
-from classes.game_class import GameManager
+from classes.game_class import Game
 
 
 class Bot(commands.Bot, ABC):
@@ -43,7 +43,7 @@ async def game_start(
         await ctx.respond("進行中のゲームがあります。先にそちらを終了して下さい。")
         return
     word_count = int(word_count)
-    game = GameManager(channel_id=ctx.channel_id, word_count=word_count)
+    game = Game(channel_id=ctx.channel_id, word_count=word_count)
     game.add_player(member_id=ctx.author.id)
     game.save()
     view = discord.ui.View(timeout=None)
@@ -93,7 +93,7 @@ async def on_message(message: discord.Message):
         return
     if message.author.bot:
         return  # ボットは無視
-    game: GameManager = games_func.get_game(channel_id=message.channel.id)
+    game: Game = games_func.get_game(channel_id=message.channel.id)
     # 答え合わせ
     is_correct, is_last_question = await check_answer(message, game)
     # 正解の場合の処理
@@ -104,12 +104,13 @@ async def on_message(message: discord.Message):
         # 最後の問題の場合は全体の集計結果を表示
         if is_last_question:
             await send_all_aggregated_result(message, game)
+            await games_func.end_game(channel_id=message.channel.id)
         # そうでない場合は次の問題に移行
         else:
             await move_to_next_question(message, game)
 
 
-async def send_all_aggregated_result(message: discord.Message, game: GameManager):
+async def send_all_aggregated_result(message: discord.Message, game: Game):
     embed = discord.Embed(title="全員の平均タイム", color=discord.Color.orange())
     players_sorted_time, players_not_answered_count = game.aggregate_all_result()
     ranking = 0
@@ -125,7 +126,7 @@ async def send_all_aggregated_result(message: discord.Message, game: GameManager
     await message.channel.send(embed=embed)
 
 
-async def check_answer(message: discord.Message, game: GameManager):
+async def check_answer(message: discord.Message, game: Game):
     if not game.is_answering(user_id=message.author.id):
         return
     is_correct, elapsed_time = game.submit_answer(user_id=message.author.id, user_answer=message.content)
@@ -149,7 +150,7 @@ async def check_answer(message: discord.Message, game: GameManager):
     return is_correct, is_last_question
 
 
-async def move_to_next_question(message: discord.Message, game: GameManager):
+async def move_to_next_question(message: discord.Message, game: Game):
     view = discord.ui.View(timeout=None)
     view.add_item(button_classes.GameQuitButton())
     embed = discord.Embed(title="全員が答え合わせを終了しました。\n2秒後に次の問題に進みます。", description="中止ボタンでゲームを中止出来ます。")
