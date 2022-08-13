@@ -4,10 +4,10 @@ from abc import ABC
 import discord
 from discord.commands import Option
 from discord.ext import commands
-from workers_kv.ext.async_workers_kv import Namespace
 
-from utils import games_func, envs
+from utils import games_func, envs, rankings
 from classes import button_classes
+from classes.ranking_class import *
 from classes.game_class import GameObj
 
 
@@ -17,9 +17,6 @@ class Bot(commands.Bot, ABC):
 
 
 bot = Bot()
-kv_namespace = Namespace(account_id=envs.WORKERS_KV_ACCOUNT,
-                         namespace_id=envs.WORKERS_KV_NAMESPACE,
-                         api_key=envs.CF_API_KEY)
 
 
 @bot.event
@@ -52,6 +49,18 @@ async def game_start(
     embed.add_field(name="文字数", value=f"{word_count}文字")
     embed.add_field(name="参加者", value=ctx.author.display_name)
     await ctx.respond(embed=embed, view=view)
+
+
+@bot.slash_command(name="グローバルランキング")
+async def global_ranking(ctx: discord.ApplicationContext):
+    ranking: GlobalRanking = await rankings.get_global_ranking()
+    all_records = ranking.get_all_records()
+    embed = discord.Embed(title="グローバルランキング", color=discord.Color.green(),
+                          description=f"文字数：{ranking.word_count}文字")
+    for user_id in all_records:
+        user = bot.get_user(user_id)
+        embed.add_field(name=f"{user.name}#{user.discriminator}", value=f"{all_records[user_id]}秒")
+    await ctx.respond(embed=embed)
 
 
 @bot.event
@@ -132,6 +141,7 @@ async def move_to_next_question(message: discord.Message, game: GameObj):
     view.add_item(button_classes.NextQuestionButton())
     view.add_item(button_classes.GameQuitButton())
     await message.channel.send(embed=embed, view=view)
+
 
 try:
     bot.run(envs.TOKEN)

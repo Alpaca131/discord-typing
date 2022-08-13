@@ -1,5 +1,5 @@
 py-cord
 numpy
 python-dotenv
-git+https://github.com/Alpaca131/workers-kv-py.git
+workers-kv-py
 asyncinit
