@@ -1,4 +1,6 @@
 from classes.game_class import Game
+from utils import rankings
+from classes.ranking_class import *
 
 games = {}
 
@@ -24,6 +26,10 @@ def is_game_exists(channel_id: int):
         return False
 
 
-def end_game(channel_id: int):
-    games.pop(channel_id, None)
-    return None
+async def end_game(channel_id: int):
+    game: Game = games.pop(channel_id)
+    if not game.is_ranking_active:
+        return
+    await rankings.add_guild_ranking_records(game)
+    await rankings.add_global_ranking_records(game.players_average_time)
+    return

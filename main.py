@@ -5,7 +5,7 @@ import discord
 from discord.commands import Option
 from discord.ext import commands
 
-from utils import games_func, envs, rankings
+from utils import games_manager, envs, rankings
 from classes import button_classes
 from classes.ranking_class import *
 from classes.game_class import Game
@@ -39,11 +39,11 @@ async def game_start(
         ctx: discord.ApplicationContext,
         word_count: Option(str, "問題の文字数を選択", name="文字数", choices=[str(i) for i in range(2, 15)])  # noqa
 ):
-    if games_func.is_game_exists(channel_id=ctx.channel_id):
+    if games_manager.is_game_exists(channel_id=ctx.channel_id):
         await ctx.respond("進行中のゲームがあります。先にそちらを終了して下さい。")
         return
     word_count = int(word_count)
-    game = Game(channel_id=ctx.channel_id, word_count=word_count)
+    game = Game(guild_id=ctx.guild_id, channel_id=ctx.channel_id, word_count=word_count)
     game.add_player(member_id=ctx.author.id)
     game.save()
     view = discord.ui.View(timeout=None)
@@ -89,11 +89,11 @@ async def global_ranking(ctx: discord.ApplicationContext):
 
 @bot.event
 async def on_message(message: discord.Message):
-    if not games_func.is_game_exists(channel_id=message.channel.id):
+    if not games_manager.is_game_exists(channel_id=message.channel.id):
         return
     if message.author.bot:
         return  # ボットは無視
-    game: Game = games_func.get_game(channel_id=message.channel.id)
+    game: Game = games_manager.get_game(channel_id=message.channel.id)
     # 答え合わせ
     is_correct, is_last_question = await check_answer(message, game)
     # 正解の場合の処理
@@ -104,7 +104,7 @@ async def on_message(message: discord.Message):
         # 最後の問題の場合は全体の集計結果を表示
         if is_last_question:
             await send_all_aggregated_result(message, game)
-            await games_func.end_game(channel_id=message.channel.id)
+            await games_manager.end_game(channel_id=message.channel.id)
         # そうでない場合は次の問題に移行
         else:
             await move_to_next_question(message, game)

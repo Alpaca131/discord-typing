@@ -1,7 +1,7 @@
 import discord
 from discord.ui import Button
 
-from utils import games_func
+from utils import games_manager
 from classes.game_class import Game
 
 
@@ -15,7 +15,7 @@ class GameJoinButton(Button):
     async def callback(self, interaction: discord.Interaction):
         user = interaction.user
         channel_id = interaction.channel_id
-        game: Game = games_func.get_game(channel_id)
+        game: Game = games_manager.get_game(channel_id)
         if game is None:
             return
         if user.id in game.player_list:
@@ -40,13 +40,13 @@ class GameLeaveButton(Button):
     async def callback(self, interaction: discord.Interaction):
         user = interaction.user
         channel_id = interaction.channel_id
-        game: Game = games_func.get_game(channel_id)
+        game: Game = games_manager.get_game(channel_id)
         if game is None:
             return
         if user.id not in game.player_list:
             return
         if len(game.player_list) == 1:
-            games_func.remove_game(game)
+            games_manager.remove_game(game)
             await interaction.response.send_message(f"ゲームを中止しました。", ephemeral=False)
             return
         game.remove_player(user.id)
@@ -70,7 +70,7 @@ class GameStartButton(Button):
 
     async def callback(self, interaction: discord.Interaction):
         channel_id = interaction.channel_id
-        game: Game = games_func.get_game(channel_id)
+        game: Game = games_manager.get_game(channel_id)
         if game is None:
             return
         for user_id in game.player_list:
@@ -96,10 +96,10 @@ class GameQuitButton(Button):
 
     async def callback(self, interaction: discord.Interaction):
         channel_id = interaction.channel_id
-        game: Game = games_func.get_game(channel_id)
+        game: Game = games_manager.get_game(channel_id)
         if game is None:
             return
-        games_func.remove_game(game)
+        games_manager.remove_game(game)
         await interaction.response.send_message(f"ゲームを中止しました。", ephemeral=False)
 
 
@@ -112,7 +112,7 @@ class NextQuestionButton(Button):
 
     async def callback(self, interaction: discord.Interaction):
         channel_id = interaction.channel_id
-        game: Game = games_func.get_game(channel_id)
+        game: Game = games_manager.get_game(channel_id)
         if game is None:
             return
         question = game.get_next_question()

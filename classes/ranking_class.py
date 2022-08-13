@@ -1,4 +1,4 @@
-from utils.kv_namespaces import global_ranking_namespace
+import json
 
 
 class GuildRanking:
@@ -18,12 +18,14 @@ class GuildRanking:
             self.word_count = word_count
             self.competitors_records = {}
 
-    def add_record(self, user_id: int, time: float):
-        if user_id in self.competitors_records:
-            # 過去の記録の方が早い場合は更新しない
-            if self.competitors_records[user_id] < time:
-                return
-        self.competitors_records[user_id] = time
+    def add_records(self, user_records):
+        for user_id in list(user_records):
+            time = user_records[user_id]
+            if user_id in self.competitors_records:
+                # 過去の記録の方が早い場合は更新しない
+                if float(self.competitors_records[user_id]) < time:
+                    user_records.pop(user_id)
+        self.competitors_records.update(user_records)
 
     def get_all_records(self, sort_by_time: bool = True):
         records = {}
@@ -46,11 +48,11 @@ class GuildRanking:
         return self.competitors_records.get(user_id)
 
     def json(self):
-        return {
+        return json.dumps({
             "guild_id": self.guild_id,
             "word_count": self.word_count,
             "competitors_records": self.competitors_records
-        }
+        })
 
 
 class GlobalRanking:
@@ -65,14 +67,6 @@ class GlobalRanking:
 
     def get_user_record(self, user_id: int):
         return self.competitors_records.get(user_id)
-
-    async def add_record(self, user_id: int, time: float):
-        if user_id in self.competitors_records:
-            # 過去の記録の方が早い場合は更新しない
-            if self.competitors_records[user_id] < time:
-                return
-        self.competitors_records[user_id] = time
-        await global_ranking_namespace.write({user_id: time})
 
     def get_all_records(self, sort_by_time: bool = True):
         records = {}

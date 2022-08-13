@@ -1,4 +1,4 @@
-from utils import games_func
+from utils import games_manager
 import json
 import random
 import re
@@ -18,29 +18,31 @@ alphabet_regex = re.compile('[ -~]+')
 
 
 class Game:
-    def __init__(self, channel_id: int, word_count: int):
-        self.competitor_time = {}
-        self.competitor_status = {}
+    def __init__(self, guild_id:  int, channel_id: int, word_count: int):
+        self.competitors_time = {}
+        self.players_average_time = {}
+        self.competitors_status = {}
         self.start_time = int()
         self.player_list = []
         self.channel_id = channel_id
+        self.guild_id = guild_id
         self.question_list = generate_question_list(word_count)
         self.question_index = -1
         self.word_count = word_count
         self.is_ranking_active = True if word_count == RANKING_WORD_COUNT else False
 
     def save(self):
-        games_func.save_game(self)
+        games_manager.save_game(self)
 
     def add_player(self, member_id: int):
         self.player_list.append(member_id)
-        self.competitor_time[member_id] = []
-        self.competitor_status[member_id] = 'answering'
+        self.competitors_time[member_id] = []
+        self.competitors_status[member_id] = 'answering'
 
     def remove_player(self, member_id: int):
         self.player_list.remove(member_id)
-        del self.competitor_time[member_id]
-        del self.competitor_status[member_id]
+        del self.competitors_time[member_id]
+        del self.competitors_status[member_id]
 
     def get_next_question(self):
         self.question_index += 1
@@ -48,13 +50,13 @@ class Game:
 
     def start_answering(self, user_id: int):
         self.start_time = time.time()
-        self.competitor_status[user_id] = 'answering'
+        self.competitors_status[user_id] = 'answering'
 
     def is_answering(self, user_id: int):
-        return self.competitor_status[user_id] == 'answering'
+        return self.competitors_status[user_id] == 'answering'
 
     def is_all_player_answered(self):
-        for status in self.competitor_status.values():
+        for status in self.competitors_status.values():
             if status != 'answered':
                 return False
         return True
@@ -72,9 +74,9 @@ class Game:
         """
         is_answer_right = check_answer(self, user_answer)
         if is_answer_right:
-            self.competitor_status[user_id] = 'answered'
+            self.competitors_status[user_id] = 'answered'
             elapsed_time = time.time() - self.start_time
-            self.competitor_time[user_id].append(elapsed_time)
+            self.competitors_time[user_id].append(elapsed_time)
             return True, elapsed_time
         return False, 0
 
@@ -87,8 +89,10 @@ class Game:
         Returns:
             average_time: float
         """
-        average = numpy.average(self.competitor_time[user_id])
-        not_answered_question_count = 10 - len(self.competitor_time[user_id])
+        average = numpy.average(self.competitors_time[user_id])
+        not_answered_question_count = 10 - len(self.competitors_time[user_id])
+        if not_answered_question_count == 0:
+            self.players_average_time[user_id] = average
         return average, not_answered_question_count
 
     def aggregate_all_result(self):
@@ -101,9 +105,11 @@ class Game:
         players_average_time = {}
         players_not_answered_question_count = {}
         for user_id in self.player_list:
-            average = numpy.average(self.competitor_time[user_id])
+            average = numpy.average(self.competitors_time[user_id])
             players_average_time[user_id] = average
-            players_not_answered_question_count[user_id] = 10 - len(self.competitor_time[user_id])
+            players_not_answered_question_count[user_id] = 10 - len(self.competitors_time[user_id])
+            if players_not_answered_question_count[user_id] == 0:
+                players_average_time[user_id] = average
         players_sorted_time = sorted(players_average_time.items(), key=lambda x: x[1])
         return players_sorted_time, players_not_answered_question_count
 
