@@ -51,15 +51,29 @@ async def game_start(
     await ctx.respond(embed=embed, view=view)
 
 
-@bot.slash_command(name="グローバルランキング")
+@bot.slash_command(name="サーバーランキング")
+async def global_ranking(ctx: discord.ApplicationContext):
+    ranking: GuildRanking = await rankings.get_guild_ranking(guild_id=ctx.guild.id)
+    all_records: dict = ranking.get_all_records()
+    embed = discord.Embed(title="このサーバーでの順位", color=discord.Color.green(),
+                          description=f"文字数：{ranking.word_count}文字")
+    for user_id in all_records:
+        rank = list(all_records.keys()).index(user_id) + 1
+        member = ctx.guild.get_member(user_id)
+        embed.add_field(name=f"{rank}位 {member.display_name}#{member.discriminator}", value=f"{all_records[user_id]}秒")
+    await ctx.respond(embed=embed)
+
+
+@bot.slash_command(name="全体ランキング")
 async def global_ranking(ctx: discord.ApplicationContext):
     ranking: GlobalRanking = await rankings.get_global_ranking()
     all_records = ranking.get_all_records()
-    embed = discord.Embed(title="グローバルランキング", color=discord.Color.green(),
+    embed = discord.Embed(title="全サーバーでの順位", color=discord.Color.green(),
                           description=f"文字数：{ranking.word_count}文字")
     for user_id in all_records:
+        rank = list(all_records.keys()).index(user_id) + 1
         user = bot.get_user(user_id)
-        embed.add_field(name=f"{user.name}#{user.discriminator}", value=f"{all_records[user_id]}秒")
+        embed.add_field(name=f"{rank}位 {user.name}#{user.discriminator}", value=f"{all_records[user_id]}秒")
     await ctx.respond(embed=embed)
 
 

@@ -2,4 +2,3 @@ py-cord
 numpy
 python-dotenv
 workers-kv-py
-asyncinit

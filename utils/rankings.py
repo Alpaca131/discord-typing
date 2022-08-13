@@ -7,11 +7,11 @@ RANKING_WORD_COUNT = 10
 
 async def get_guild_ranking(guild_id: int) -> GuildRanking:
     data = await guild_ranking_namespace.read(str(guild_id))
-    return GuildRanking(guild_id=guild_id, word_count=RANKING_WORD_COUNT, competitors_record=data)
+    return GuildRanking(json_data=data)
 
 
 async def save_guild_ranking(guild_ranking: GuildRanking) -> None:
-    await guild_ranking_namespace.write({guild_ranking.guild_id: guild_ranking.competitors_record})
+    await guild_ranking_namespace.write({guild_ranking.guild_id: guild_ranking.json()})
     return None
 
 
