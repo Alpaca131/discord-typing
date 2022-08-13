@@ -24,6 +24,16 @@ async def on_ready():
     print("logged in")
 
 
+@bot.slash_command(name="help")
+async def help_command(ctx: discord.ApplicationContext):
+    embed = discord.Embed(title="タイピングBot", description="問題は寿司打の物を利用しています。\n**ランキングは10文字の問題を解くと対象になります。**",
+                          color=discord.Color.green())
+    embed.add_field(name="/ゲーム開始", value="ゲームを開始します。", inline=False)
+    embed.add_field(name="/サーバーランキング", value="サーバー内でのランキングを表示します。", inline=False)
+    embed.add_field(name="/グローバルランキング", value="全利用者中のランキングを表示します。", inline=False)
+    await ctx.respond(embed=embed, ephemeral=True)
+
+
 @bot.slash_command(name="ゲーム開始")
 async def game_start(
         ctx: discord.ApplicationContext,
