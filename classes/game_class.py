@@ -7,6 +7,7 @@ import time
 import numpy as numpy
 
 from utils.google_input import FilterRuleTable, GoogleInput
+from utils.rankings import RANKING_WORD_COUNT
 
 with open('files/sushida.json', encoding='utf-8') as f:
     sushida_dict = json.load(f)
@@ -16,7 +17,7 @@ gi = GoogleInput(table)
 alphabet_regex = re.compile('[ -~]+')
 
 
-class GameObj:
+class GameManager:
     def __init__(self, channel_id: int, word_count: int):
         self.competitor_time = {}
         self.competitor_status = {}
@@ -26,6 +27,7 @@ class GameObj:
         self.question_list = generate_question_list(word_count)
         self.question_index = -1
         self.word_count = word_count
+        self.is_ranking_active = True if word_count == RANKING_WORD_COUNT else False
 
     def save(self):
         games_func.save_game(self)
@@ -111,7 +113,7 @@ def generate_question_list(word_count: int):
     return question_lists
 
 
-def check_answer(game: GameObj, answer: str):
+def check_answer(game: GameManager, answer: str):
     if alphabet_regex.fullmatch(answer):
         answer = rome_to_hiragana(answer)
     answer = answer.replace('!', '！')

@@ -1,4 +1,4 @@
-from classes.game_class import GameObj
+from classes.game_class import GameManager
 
 games = {}
 
@@ -7,12 +7,12 @@ def get_game(channel_id: int):
     return games.get(channel_id)
 
 
-def save_game(game: GameObj):
+def save_game(game: GameManager):
     channel_id = game.channel_id
     games[channel_id] = game
 
 
-def remove_game(game: GameObj):
+def remove_game(game: GameManager):
     channel_id = game.channel_id
     games.pop(channel_id, None)
 
