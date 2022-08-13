@@ -1,4 +1,4 @@
-import games_func
+from utils import games_func
 import json
 import random
 import re
@@ -6,12 +6,12 @@ import time
 
 import numpy as numpy
 
-from google_input import FilterRuleTable, GoogleInput
+from utils.google_input import FilterRuleTable, GoogleInput
 
-with open('susida.json', encoding='utf-8') as f:
+with open('files/sushida.json', encoding='utf-8') as f:
     sushida_dict = json.load(f)
 
-table = FilterRuleTable.from_file("google_ime_default_roman_table.txt")
+table = FilterRuleTable.from_file("files/google_ime_default_roman_table.txt")
 gi = GoogleInput(table)
 alphabet_regex = re.compile('[ -~]+')
 

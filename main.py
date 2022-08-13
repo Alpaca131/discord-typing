@@ -6,8 +6,7 @@ from discord.commands import Option
 from discord.ext import commands
 from workers_kv.ext.async_workers_kv import Namespace
 
-import envs
-import games_func
+from utils import games_func, envs
 from classes import button_classes
 from classes.game_class import GameObj
 

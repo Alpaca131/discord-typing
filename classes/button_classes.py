@@ -1,7 +1,7 @@
 import discord
 from discord.ui import Button
 
-import games_func
+from utils import games_func
 from classes.game_class import GameObj
 
 
