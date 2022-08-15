@@ -15,7 +15,7 @@ async def add_guild_ranking_records(game) -> None:
     if guild_ranking is None:
         guild_ranking = GuildRanking(word_count=RANKING_WORD_COUNT, guild_id=game.guild_id)
     guild_ranking.add_records(game.players_average_time)
-    await guild_ranking_namespace.write({game.guild_id: guild_ranking.json()})
+    await guild_ranking_namespace.write({game.guild_id: guild_ranking.dict()})
     return
 
 
@@ -35,6 +35,5 @@ async def add_global_ranking_records(user_records: dict) -> None:
             # 過去の記録の方が早い場合は更新しない
             if float(await global_ranking_namespace.read(str(user_id))) < time:
                 user_records.pop(user_id)
-    await global_ranking_namespace.delete_many(list(user_records.keys()))
     await global_ranking_namespace.write(user_records)
     return None

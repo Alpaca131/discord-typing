@@ -47,12 +47,12 @@ class GuildRanking:
     def get_user_record(self, user_id: int):
         return self.competitors_records.get(user_id)
 
-    def json(self):
-        return json.dumps({
+    def dict(self):
+        return {
             "guild_id": self.guild_id,
             "word_count": self.word_count,
             "competitors_records": self.competitors_records
-        })
+        }
 
 
 class GlobalRanking:
