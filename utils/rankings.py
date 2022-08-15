@@ -7,13 +7,11 @@ RANKING_WORD_COUNT = 10
 
 async def get_guild_ranking(guild_id: int) -> GuildRanking:
     data = await guild_ranking_namespace.read(str(guild_id))
-    return GuildRanking(json_data=data) if data else None
+    return GuildRanking(json_data=data) if data else GuildRanking(word_count=RANKING_WORD_COUNT, guild_id=guild_id)
 
 
 async def add_guild_ranking_records(game) -> None:
     guild_ranking = await get_guild_ranking(game.guild_id)
-    if guild_ranking is None:
-        guild_ranking = GuildRanking(word_count=RANKING_WORD_COUNT, guild_id=game.guild_id)
     guild_ranking.add_records(game.players_average_time)
     await guild_ranking_namespace.write({game.guild_id: guild_ranking.dict()})
     return
