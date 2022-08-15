@@ -7,7 +7,7 @@ RANKING_WORD_COUNT = 10
 
 async def get_guild_ranking(guild_id: int) -> GuildRanking:
     data = await guild_ranking_namespace.read(str(guild_id))
-    return GuildRanking(json_data=data)
+    return GuildRanking(json_data=data) if data else None
 
 
 async def add_guild_ranking_records(game) -> None:
@@ -29,12 +29,12 @@ async def get_global_ranking() -> GlobalRanking:
 
 async def add_global_ranking_records(user_records: dict) -> None:
     global_ranking_user_ids = await global_ranking_namespace.list_keys()
-    formatted_records = user_records
-    for user_id in user_records:
+    for user_id in list(user_records):
         time = user_records[user_id]
         if str(user_id) in global_ranking_user_ids:
             # 過去の記録の方が早い場合は更新しない
             if float(await global_ranking_namespace.read(str(user_id))) < time:
-                formatted_records.pop(user_id)
-    await global_ranking_namespace.write(formatted_records)
+                user_records.pop(user_id)
+    await global_ranking_namespace.delete_many(list(user_records.keys()))
+    await global_ranking_namespace.write(user_records)
     return None

@@ -114,7 +114,6 @@ async def send_all_aggregated_result(message: discord.Message, game: Game):
     embed = discord.Embed(title="全員の平均タイム", color=discord.Color.orange())
     players_sorted_time, players_not_answered_count = game.aggregate_all_result()
     ranking = 0
-    print(players_sorted_time)
     for t in players_sorted_time:
         user_id = t[0]
         average_time = t[1]
