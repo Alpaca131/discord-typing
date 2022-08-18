@@ -36,7 +36,7 @@ async def help_command(ctx: discord.ApplicationContext):
     await ctx.respond(embed=embed, ephemeral=True)
 
 
-@bot.slash_command(name="ゲーム開始")
+@bot.slash_command(name="ゲーム開始", description="ランキングの対象は10文字です。")
 async def game_start(
         ctx: discord.ApplicationContext,
         word_count: Option(str, "問題の文字数を選択", name="文字数", choices=[str(i) for i in range(2, 15)])  # noqa
@@ -64,7 +64,7 @@ async def game_start(
     await ctx.respond(embed=embed, view=view)
 
 
-@bot.slash_command(name="サーバーランキング")
+@bot.slash_command(name="サーバーランキング", description="このサーバー内でのランキングを表示します。")
 async def global_ranking(ctx: discord.ApplicationContext):
     ranking: GuildRanking = await rankings.get_guild_ranking(guild_id=ctx.guild.id)
     all_records: dict = ranking.get_all_records()
@@ -77,7 +77,7 @@ async def global_ranking(ctx: discord.ApplicationContext):
     await ctx.respond(embed=embed)
 
 
-@bot.slash_command(name="全体ランキング")
+@bot.slash_command(name="全体ランキング", description="全サーバー総合でのランキングを表示します。")
 async def global_ranking(ctx: discord.ApplicationContext):
     ranking: GlobalRanking = await rankings.get_global_ranking()
     all_records = ranking.get_all_records()
