@@ -1,6 +1,5 @@
 from classes.game_class import Game
 from utils import rankings
-from classes.ranking_class import *
 
 games = {}
 
