@@ -73,7 +73,8 @@ async def global_ranking(ctx: discord.ApplicationContext):
     for user_id in all_records:
         rank = list(all_records.keys()).index(user_id) + 1
         member = ctx.guild.get_member(user_id)
-        embed.add_field(name=f"{rank}位 {member.display_name}#{member.discriminator}", value=f"{all_records[user_id]}秒")
+        embed.add_field(name=f"{rank}位 {member.display_name}#{member.discriminator}",
+                        value=f"{all_records[user_id]}秒", inline=False)
     await ctx.respond(embed=embed)
 
 
@@ -86,7 +87,8 @@ async def global_ranking(ctx: discord.ApplicationContext):
     for user_id in all_records:
         rank = list(all_records.keys()).index(user_id) + 1
         user = bot.get_user(user_id)
-        embed.add_field(name=f"{rank}位 {user.name}#{user.discriminator}", value=f"{all_records[user_id]}秒")
+        embed.add_field(name=f"{rank}位 {user.name}#{user.discriminator}",
+                        value=f"{all_records[user_id]}秒", inline=False)
     await ctx.respond(embed=embed)
 
 
