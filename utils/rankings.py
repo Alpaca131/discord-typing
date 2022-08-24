@@ -37,6 +37,6 @@ async def add_global_ranking_records(user_records: dict) -> None:
     return None
 
 
-async def remove_global_ranking_records(user_id: int) -> None:
-    await global_ranking_namespace.delete_one(str(user_id))
+async def remove_global_ranking_records(user_ids: list) -> None:
+    await global_ranking_namespace.delete_many(user_ids)
     return None

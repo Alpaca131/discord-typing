@@ -85,16 +85,19 @@ async def global_ranking(ctx: discord.ApplicationContext):
     all_records = ranking.get_all_records()
     embed = discord.Embed(title="全サーバーでの順位", color=discord.Color.green(),
                           description=f"文字数：{ranking.word_count}文字")
+    deleted_user_ids = []
     for user_id in all_records:
         rank = list(all_records.keys()).index(user_id) + 1
         user = bot.get_user(user_id)
         # ユーザーが退会済みの場合は記録から除外
         if user is None:
-            await rankings.remove_global_ranking_records(user_id=user_id)
+            deleted_user_ids.append(user_id)
             continue
         embed.add_field(name=f"{rank}位 {user.name}#{user.discriminator if user else ''}",
                         value=f"{all_records[user_id]}秒", inline=False)
     await ctx.respond(embed=embed)
+    if deleted_user_ids:
+        await rankings.remove_global_ranking_records(user_ids=deleted_user_ids)
 
 
 @bot.event
