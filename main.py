@@ -90,6 +90,7 @@ async def global_ranking(ctx: discord.ApplicationContext):
         user = bot.get_user(user_id)
         # ユーザーが退会済みの場合は記録から除外
         if user is None:
+            await rankings.remove_global_ranking_records(user_id=user_id)
             continue
         embed.add_field(name=f"{rank}位 {user.name}#{user.discriminator if user else ''}",
                         value=f"{all_records[user_id]}秒", inline=False)
