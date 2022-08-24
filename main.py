@@ -88,7 +88,10 @@ async def global_ranking(ctx: discord.ApplicationContext):
     for user_id in all_records:
         rank = list(all_records.keys()).index(user_id) + 1
         user = bot.get_user(user_id)
-        embed.add_field(name=f"{rank}位 {user.name}#{user.discriminator}",
+        # ユーザーが退会済みの場合は記録から除外
+        if user is None:
+            continue
+        embed.add_field(name=f"{rank}位 {user.name}#{user.discriminator if user else ''}",
                         value=f"{all_records[user_id]}秒", inline=False)
     await ctx.respond(embed=embed)
 
