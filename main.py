@@ -88,7 +88,7 @@ async def global_ranking(ctx: discord.ApplicationContext):
     deleted_user_ids = []
     for user_id in all_records:
         rank = list(all_records.keys()).index(user_id) + 1
-        user = bot.get_user(user_id)
+        user = await bot.fetch_user(user_id)
         # ユーザーが退会済みの場合は記録から除外
         if user is None:
             deleted_user_ids.append(user_id)
