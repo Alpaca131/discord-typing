@@ -85,7 +85,7 @@ async def global_ranking(ctx: discord.ApplicationContext):
     all_records = ranking.get_all_records()
     embed = discord.Embed(title="全サーバーでの順位", color=discord.Color.green(),
                           description=f"読み込み中...")
-    await ctx.respond(embed=embed)
+    await ctx.interaction.response.send_message(embed=embed)
     embed = discord.Embed(title="全サーバーでの順位", color=discord.Color.green(),
                           description=f"文字数：{ranking.word_count}文字")
     for user_id in all_records:
