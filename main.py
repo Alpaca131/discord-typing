@@ -174,7 +174,7 @@ async def move_to_next_question(message: discord.Message, game: Game):
     await asyncio.sleep(2)
     question = game.get_next_question()
     question_number = game.question_index + 1
-    embed = discord.Embed(title=f"問題{question_number}：{question}", color=discord.Color.green())
+    embed = discord.Embed(title=f"問題{question_number}：{question}", color=discord.Color.blurple())
     for user_id in game.player_list:
         game.start_answering(user_id=user_id)
     game.save()
