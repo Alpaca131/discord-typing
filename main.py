@@ -81,11 +81,11 @@ async def guild_ranking(ctx: discord.ApplicationContext):
 
 @bot.slash_command(name="全体ランキング", description="全サーバー総合でのランキングを表示します。")
 async def global_ranking(ctx: discord.ApplicationContext):
-    ranking: GlobalRanking = await rankings.get_global_ranking()
-    all_records = ranking.get_all_records()
     embed = discord.Embed(title="全サーバーでの順位", color=discord.Color.green(),
                           description=f"読み込み中...")
     await ctx.interaction.response.send_message(embed=embed)
+    ranking: GlobalRanking = await rankings.get_global_ranking()
+    all_records = ranking.get_all_records()
     embed = discord.Embed(title="全サーバーでの順位", color=discord.Color.green(),
                           description=f"文字数：{ranking.word_count}文字")
     for user_id in all_records:
