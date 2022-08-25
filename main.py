@@ -67,6 +67,9 @@ async def game_start(
 
 @bot.slash_command(name="サーバーランキング", description="このサーバー内でのランキングを表示します。")
 async def guild_ranking(ctx: discord.ApplicationContext):
+    embed = discord.Embed(title="このサーバーでの順位", color=discord.Color.green(),
+                          description=f"読み込み中...")
+    await ctx.interaction.response.send_message(embed=embed)
     ranking: GuildRanking = await rankings.get_guild_ranking(guild_id=ctx.guild.id)
     all_records: dict = ranking.get_all_records()
     embed = discord.Embed(title="このサーバーでの順位", color=discord.Color.green(),
@@ -76,7 +79,7 @@ async def guild_ranking(ctx: discord.ApplicationContext):
         member = ctx.guild.get_member(user_id)
         embed.add_field(name=f"{rank}位 {member.display_name}#{member.discriminator}",
                         value=f"{all_records[user_id]}秒", inline=False)
-    await ctx.respond(embed=embed)
+    await ctx.interaction.edit_original_message(embed=embed)
 
 
 @bot.slash_command(name="全体ランキング", description="全サーバー総合でのランキングを表示します。")
