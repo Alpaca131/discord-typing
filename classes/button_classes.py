@@ -87,7 +87,7 @@ class GameStartButton(Button):
         question = game.get_next_question()
         game.save()
         embed = discord.Embed(title=f"問題1：{question}",
-                              color=discord.Color.green())
+                              color=discord.Color.blurple())
         await interaction.channel.send(embed=embed, view=view)
         await interaction.message.delete()
 
@@ -112,7 +112,7 @@ class NextQuestionButton(Button):
     def __init__(self):
         super().__init__(
             label="次の問題へ",
-            style=discord.enums.ButtonStyle.success
+            style=discord.enums.ButtonStyle.blurple
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -124,7 +124,7 @@ class NextQuestionButton(Button):
         for user_id in game.player_list:
             game.start_answering(user_id)
         question_number = game.question_index + 1
-        embed = discord.Embed(title=f"問題{question_number}：{question}", color=discord.Color.green())
+        embed = discord.Embed(title=f"問題{question_number}：{question}", color=discord.Color.blurple())
         game.save()
         view = discord.ui.View(timeout=None)
         view.add_item(NextQuestionButton())
