@@ -66,7 +66,7 @@ async def game_start(
 
 
 @bot.slash_command(name="サーバーランキング", description="このサーバー内でのランキングを表示します。")
-async def global_ranking(ctx: discord.ApplicationContext):
+async def guild_ranking(ctx: discord.ApplicationContext):
     ranking: GuildRanking = await rankings.get_guild_ranking(guild_id=ctx.guild.id)
     all_records: dict = ranking.get_all_records()
     embed = discord.Embed(title="このサーバーでの順位", color=discord.Color.green(),
@@ -84,18 +84,21 @@ async def global_ranking(ctx: discord.ApplicationContext):
     ranking: GlobalRanking = await rankings.get_global_ranking()
     all_records = ranking.get_all_records()
     embed = discord.Embed(title="全サーバーでの順位", color=discord.Color.green(),
+                          description=f"読み込み中...")
+    message = await ctx.respond(embed=embed)
+    embed = discord.Embed(title="全サーバーでの順位", color=discord.Color.green(),
                           description=f"文字数：{ranking.word_count}文字")
     for user_id in all_records:
         rank = list(all_records.keys()).index(user_id) + 1
         user = bot.get_user(int(user_id))
-        # ユーザーが退会済みの場合は記録から除外
+        # レスポンスが遅れるので、サーバーを共有してない場合は表示しない
         try:
             user = await bot.fetch_user(int(user_id)) if user is None else user
         except discord.NotFound:
             continue
         embed.add_field(name=f"{rank}位 {user.name}#{user.discriminator if user else ''}",
                         value=f"{all_records[user_id]}秒", inline=False)
-    await ctx.respond(embed=embed)
+    await message.edit(embed=embed)
 
 
 @bot.event
