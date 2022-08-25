@@ -139,11 +139,11 @@ async def send_all_aggregated_result(message: discord.Message, game: Game):
 async def check_answer(message: discord.Message, game: Game):
     if not game.is_answering(user_id=message.author.id):
         return
-    is_correct, elapsed_time = game.submit_answer(user_id=message.author.id, user_answer=message.content)
+    is_correct, elapsed_time, user_input = game.submit_answer(user_id=message.author.id, user_input=message.content)
     game.save()
     is_last_question = False
     if not is_correct:
-        embed = discord.Embed(title="不正解です。", color=discord.Color.red())
+        embed = discord.Embed(title="不正解です。", description=f"入力：{user_input}", color=discord.Color.red())
         await message.channel.send(embed=embed)
     else:
         embed = discord.Embed(title="正解です！",

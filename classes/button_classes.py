@@ -1,3 +1,4 @@
+import asyncio
 import discord
 from discord.ui import Button
 
@@ -73,16 +74,20 @@ class GameStartButton(Button):
         game: Game = games_manager.get_game(channel_id)
         if game is None:
             return
+        view = discord.ui.View(timeout=None)
+        view.add_item(NextQuestionButton())
+        view.add_item(GameQuitButton())
+        await interaction.response.send_message(f"5秒後にゲームを開始します！", ephemeral=False)
+        for i in (4, 3, 2, 1):
+            await asyncio.sleep(1)
+            await interaction.edit_original_message(content=f"{i}秒後にゲームを開始します！")
+
         for user_id in game.player_list:
             game.start_answering(user_id)
         question = game.get_next_question()
         game.save()
-        view = discord.ui.View(timeout=None)
-        view.add_item(NextQuestionButton())
-        view.add_item(GameQuitButton())
         embed = discord.Embed(title=f"問題1：{question}",
                               color=discord.Color.green())
-        await interaction.response.send_message(f"ゲームを開始します！", ephemeral=False)
         await interaction.channel.send(embed=embed, view=view)
         await interaction.message.delete()
 

@@ -6,6 +6,7 @@ import time
 
 import numpy as numpy
 
+from typing import Tuple
 from utils.google_input import FilterRuleTable, GoogleInput
 from utils.rankings import RANKING_WORD_COUNT
 
@@ -61,24 +62,25 @@ class Game:
                 return False
         return True
 
-    def submit_answer(self, user_id: int, user_answer: str):
+    def submit_answer(self, user_id: int, user_input: str) -> Tuple[bool, float, str]:
         """
         is_correctは正解の場合はTrue、不正解の場合はFalse
         Args:
             user_id:
-            user_answer:
+            user_input:
 
         Returns:
             is_correct: bool
             elapsed_time: int
+            user_input: str
         """
-        is_answer_right = check_answer(self, user_answer)
+        is_answer_right, user_input = _check_answer(self, user_input)
         if is_answer_right:
             self.competitors_status[user_id] = 'answered'
             elapsed_time = time.time() - self.start_time
             self.competitors_time[user_id].append(elapsed_time)
-            return True, elapsed_time
-        return False, 0
+            return True, elapsed_time, user_input
+        return False, 0, user_input
 
     def aggregate_user_result(self, user_id: int):
         """
@@ -119,14 +121,14 @@ def generate_question_list(word_count: int):
     return question_lists
 
 
-def check_answer(game: Game, answer: str):
-    if alphabet_regex.fullmatch(answer):
-        answer = rome_to_hiragana(answer)
-    answer = answer.replace('!', '！')
-    answer = answer.replace('?', '？')
+def _check_answer(game: Game, user_input: str) -> Tuple[bool, str]:
+    if alphabet_regex.fullmatch(user_input):
+        user_input = rome_to_hiragana(user_input)
+    user_input = user_input.replace('!', '！')
+    user_input = user_input.replace('?', '？')
     question = game.question_list[game.question_index]
     right_answer = question[0]
-    return right_answer == answer
+    return right_answer == user_input, user_input
 
 
 def rome_to_hiragana(input_string):
