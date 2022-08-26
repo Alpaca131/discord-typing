@@ -1,6 +1,7 @@
 from classes.ranking_class import GlobalRanking, GuildRanking
 from utils.kv_namespaces import *
 
+cached_global_record = {}
 # 将来的には可変に？
 RANKING_WORD_COUNT = 10
 
@@ -18,10 +19,13 @@ async def add_guild_ranking_records(game) -> None:
 
 
 async def get_global_ranking() -> GlobalRanking:
+    if cached_global_record:
+        return GlobalRanking(word_count=RANKING_WORD_COUNT, competitors_record=cached_global_record)
     kv_keys = await global_ranking_namespace.list_keys()
     data = {}
     for user_id in kv_keys:
         data[int(user_id)] = float(await global_ranking_namespace.read(user_id))
+    cached_global_record.update(data)
     return GlobalRanking(word_count=RANKING_WORD_COUNT, competitors_record=data)
 
 
@@ -34,9 +38,5 @@ async def add_global_ranking_records(user_records: dict) -> None:
             if float(await global_ranking_namespace.read(str(user_id))) < time:
                 user_records.pop(user_id)
     await global_ranking_namespace.write(user_records)
-    return None
-
-
-async def remove_global_ranking_records(user_ids: list) -> None:
-    await global_ranking_namespace.delete_many(user_ids)
+    cached_global_record.update(user_records)
     return None
