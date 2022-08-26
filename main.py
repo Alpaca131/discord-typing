@@ -150,11 +150,11 @@ async def check_answer(message: discord.Message, game: Game):
     is_last_question = False
     if not is_correct:
         embed = discord.Embed(title="不正解です。", description=f"入力：{user_input}", color=discord.Color.red())
-        await message.channel.send(embed=embed)
+        await message.reply(embed=embed)
     else:
         embed = discord.Embed(title="正解です！",
                               description=f"回答時間：{elapsed_time}秒", color=discord.Color.green())
-        await message.channel.send(embed=embed)
+        await message.reply(embed=embed)
 
         is_last_question = game.question_index == 9
         if is_last_question:
