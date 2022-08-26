@@ -39,7 +39,6 @@ class Game:
     def add_player(self, member_id: int):
         self.player_list.append(member_id)
         self.competitors_time[member_id] = []
-        self.competitors_status[member_id] = 'answering'
 
     def remove_player(self, member_id: int):
         self.player_list.remove(member_id)
