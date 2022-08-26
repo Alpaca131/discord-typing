@@ -1,20 +1,21 @@
-from utils import games_manager
 import json
 import random
 import re
 import time
+from typing import Tuple
 
 import numpy as numpy
+from google_input.filter_rule import FilterRuleTable
+from google_input.ime import GoogleInputIME
 
-from typing import Tuple
-from utils.google_input import FilterRuleTable, GoogleInput
+from utils import games_manager
 from utils.rankings import RANKING_WORD_COUNT
 
 with open('files/sushida.json', encoding='utf-8') as f:
     sushida_dict = json.load(f)
 
 table = FilterRuleTable.from_file("files/google_ime_default_roman_table.txt")
-gi = GoogleInput(table)
+ime = GoogleInputIME(table)
 alphabet_regex = re.compile('[ -~]+')
 
 
@@ -124,20 +125,15 @@ def generate_question_list(word_count: int):
 def _check_answer(game: Game, user_input: str) -> Tuple[bool, str]:
     if alphabet_regex.fullmatch(user_input):
         user_input = rome_to_hiragana(user_input)
-    user_input = user_input.replace('!', '！')
-    user_input = user_input.replace('?', '？')
+    user_input = user_input.replace('!', '！').replace('?', '？')
     question = game.question_list[game.question_index]
     right_answer = question[0]
     return right_answer == user_input, user_input
 
 
 def rome_to_hiragana(input_string):
-    output = ""
+    output = []
     for c in input_string:
-        result = gi.input(c)
-        if result.fixed:
-            output += result.fixed.output
-        else:
-            if not result.tmp_fixed and not result.next_candidates:
-                output += result.input
-    return output
+        results = ime.input(c)
+        output.append("".join(r.output_rule.output for r in results if r.output_rule))
+    return "".join(output)
