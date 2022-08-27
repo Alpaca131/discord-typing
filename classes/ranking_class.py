@@ -1,6 +1,3 @@
-import json
-
-
 class GuildRanking:
     def __init__(self, guild_id: int = None,
                  word_count: int = None,
