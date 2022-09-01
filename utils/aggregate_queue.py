@@ -14,13 +14,12 @@ def create_queue(game):
 
 
 async def append(message: discord.Message):
-    game = games_manager.get_game(message.channel_id)
-    queue: list = queued_messages[message.channel_id]
-    queue.append(message)
-    if len(queue) > 0:
+    queued_messages[message.channel.id].append(message)
+    if len(queued_messages[message.channel.id]) > 1:
         return
-    while len(queue) > 0:
-        message: discord.Message = queued_messages[message.channel_id].pop(-1)
+    game = games_manager.get_game(message.channel.id)
+    while len(queued_messages[message.channel.id]) > 0:
+        message: discord.Message = queued_messages[game.channel_id].pop(-1)
         # 答え合わせ
         try:
             is_correct, is_last_question = await check_answer(message, game)
