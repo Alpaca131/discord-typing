@@ -176,8 +176,10 @@ async def move_to_next_question(message: discord.Message, game: Game):
     view = discord.ui.View(timeout=None)
     view.add_item(button_classes.GameQuitButton())
     embed = discord.Embed(title="全員が答え合わせを終了しました。\n2秒後に次の問題に進みます。", description="中止ボタンでゲームを中止出来ます。")
-    await message.channel.send(embed=embed, view=view)
-    await asyncio.sleep(2)
+    next_question_message = await message.channel.send(embed=embed, view=view)
+    await asyncio.sleep(1)
+    embed = discord.Embed(title="全員が答え合わせを終了しました。\n1秒後に次の問題に進みます。", description="中止ボタンでゲームを中止出来ます。")
+    await next_question_message.edit(embed=embed, view=view)
     question = game.get_next_question()
     question_number = game.question_index + 1
     embed = discord.Embed(title=f"問題{question_number}：{question}", color=discord.Color.blurple())
@@ -187,7 +189,7 @@ async def move_to_next_question(message: discord.Message, game: Game):
     view = discord.ui.View(timeout=None)
     view.add_item(button_classes.NextQuestionButton())
     view.add_item(button_classes.GameQuitButton())
-    await message.channel.send(embed=embed, view=view)
+    await next_question_message.edit(embed=embed, view=view)
 
 
 try:
