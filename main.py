@@ -150,7 +150,8 @@ async def check_answer(message: discord.Message, game: Game) -> Tuple[bool, bool
     embeds = []
     if not game.is_answering(user_id=message.author.id):
         raise ValueError("player status is not 'answering'")
-    is_correct, elapsed_time, user_input = game.submit_answer(user_id=message.author.id, user_input=message.content)
+    is_correct, elapsed_time, user_input = game.submit_answer(msg_created_at=message.created_at.timestamp(),
+                                                              user_id=message.author.id, user_input=message.content)
     game.save()
     is_last_question = False
     if not is_correct:

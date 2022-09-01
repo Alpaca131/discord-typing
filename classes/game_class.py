@@ -62,12 +62,13 @@ class Game:
                 return False
         return True
 
-    def submit_answer(self, user_id: int, user_input: str) -> Tuple[bool, float, str]:
+    def submit_answer(self, msg_created_at: float, user_id: int, user_input: str) -> Tuple[bool, float, str]:
         """
         is_correctは正解の場合はTrue、不正解の場合はFalse
         Args:
-            user_id:
-            user_input:
+            msg_created_at: float
+            user_id: int
+            user_input: str
 
         Returns:
             is_correct: bool
@@ -77,7 +78,7 @@ class Game:
         is_answer_right, user_input = _check_answer(self, user_input)
         if is_answer_right:
             self.competitors_status[user_id] = 'answered'
-            elapsed_time = time.time() - self.start_time
+            elapsed_time = msg_created_at - self.start_time
             self.competitors_time[user_id].append(elapsed_time)
             return True, elapsed_time, user_input
         return False, 0, user_input
