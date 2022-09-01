@@ -8,6 +8,7 @@ import numpy as numpy
 from google_input.filter_rule import FilterRuleTable
 from google_input.ime import GoogleInputIME
 
+from utils import aggregate_queue
 from utils import games_manager
 from utils.rankings import RANKING_WORD_COUNT
 
@@ -20,7 +21,7 @@ alphabet_regex = re.compile('[ -~]+')
 
 
 class Game:
-    def __init__(self, guild_id:  int, channel_id: int, word_count: int):
+    def __init__(self, guild_id: int, channel_id: int, word_count: int):
         self.competitors_time = {}
         self.players_average_time = {}
         self.competitors_status = {}
@@ -32,6 +33,7 @@ class Game:
         self.question_index = -1
         self.word_count = word_count
         self.is_ranking_active = True if word_count == RANKING_WORD_COUNT else False
+        aggregate_queue.create_queue(self)
 
     def save(self):
         games_manager.save_game(self)
