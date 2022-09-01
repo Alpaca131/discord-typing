@@ -1,14 +1,15 @@
 import asyncio
 from abc import ABC
+from typing import Tuple, List
 
 import discord
 from discord.commands import Option
 from discord.ext import commands
 
-from utils import games_manager, envs, rankings
 from classes import button_classes
-from classes.ranking_class import *
 from classes.game_class import Game
+from classes.ranking_class import *
+from utils import games_manager, envs, rankings
 
 
 class Bot(commands.Bot, ABC):
@@ -112,7 +113,10 @@ async def on_message(message: discord.Message):
         return  # ボットは無視
     game: Game = games_manager.get_game(channel_id=message.channel.id)
     # 答え合わせ
-    is_correct, is_last_question = await check_answer(message, game)
+    try:
+        is_correct, is_last_question = await check_answer(message, game)
+    except ValueError("player status is not 'answering'"):
+        return
     # 正解の場合の処理
     if not is_correct:
         return
@@ -142,19 +146,20 @@ async def send_all_aggregated_result(message: discord.Message, game: Game):
     await message.channel.send(embed=embed)
 
 
-async def check_answer(message: discord.Message, game: Game):
+async def check_answer(message: discord.Message, game: Game) -> Tuple[bool, bool]:
+    embeds = []
     if not game.is_answering(user_id=message.author.id):
-        return
+        raise ValueError("player status is not 'answering'")
     is_correct, elapsed_time, user_input = game.submit_answer(user_id=message.author.id, user_input=message.content)
     game.save()
     is_last_question = False
     if not is_correct:
         embed = discord.Embed(title="不正解です。", description=f"入力：{user_input}", color=discord.Color.red())
-        await message.reply(embed=embed)
+        embeds.append(embed)
     else:
         embed = discord.Embed(title="正解です！",
                               description=f"回答時間：{elapsed_time}秒", color=discord.Color.green())
-        await message.reply(embed=embed)
+        embeds.append(embed)
 
         is_last_question = game.question_index == 9
         if is_last_question:
@@ -162,7 +167,8 @@ async def check_answer(message: discord.Message, game: Game):
             embed = discord.Embed(title=f"あなたの平均タイムは{average_time:.03f}秒です。",
                                   description=f"未回答の問題：{not_answered_question_count}問",
                                   color=discord.Color.greyple())
-            await message.channel.send(embed=embed)
+            embeds.append(embed)
+    await message.reply(embeds=embeds)
     return is_correct, is_last_question
 
 
