@@ -95,7 +95,6 @@ async def global_ranking(ctx: discord.ApplicationContext):
     for user_id in all_records:
         rank = list(all_records.keys()).index(user_id) + 1
         user = bot.get_user(int(user_id))
-        # レスポンスが遅れるので、サーバーを共有してない場合は表示しない
         try:
             user = await bot.fetch_user(int(user_id)) if user is None else user
         except discord.NotFound:
