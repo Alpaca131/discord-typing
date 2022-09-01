@@ -176,11 +176,12 @@ async def check_answer(message: discord.Message, game: Game) -> Tuple[bool, bool
 async def move_to_next_question(message: discord.Message, game: Game):
     view = discord.ui.View(timeout=None)
     view.add_item(button_classes.GameQuitButton())
-    embed = discord.Embed(title="全員が答え合わせを終了しました。\n2秒後に次の問題に進みます。", description="中止ボタンでゲームを中止出来ます。")
+    embed = discord.Embed(title="全員が答え合わせを終了しました。\n3秒後に次の問題に進みます。", description="中止ボタンでゲームを中止出来ます。")
     next_question_message = await message.channel.send(embed=embed, view=view)
     await asyncio.sleep(1)
-    embed = discord.Embed(title="全員が答え合わせを終了しました。\n1秒後に次の問題に進みます。", description="中止ボタンでゲームを中止出来ます。")
-    await asyncio.sleep(1)
+    for i in (2, 1):
+        embed = discord.Embed(title=f"全員が答え合わせを終了しました。\n{i}秒後に次の問題に進みます。", description="中止ボタンでゲームを中止出来ます。")
+        await asyncio.sleep(1)
     await next_question_message.edit(embed=embed, view=view)
     question = game.get_next_question()
     question_number = game.question_index + 1
