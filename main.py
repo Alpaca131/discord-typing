@@ -1,6 +1,6 @@
 import asyncio
 from abc import ABC
-from typing import Tuple, List
+from typing import Tuple
 
 import discord
 from discord.commands import Option
