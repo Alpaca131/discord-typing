@@ -179,6 +179,7 @@ async def move_to_next_question(message: discord.Message, game: Game):
     next_question_message = await message.channel.send(embed=embed, view=view)
     await asyncio.sleep(1)
     embed = discord.Embed(title="全員が答え合わせを終了しました。\n1秒後に次の問題に進みます。", description="中止ボタンでゲームを中止出来ます。")
+    await asyncio.sleep(1)
     await next_question_message.edit(embed=embed, view=view)
     question = game.get_next_question()
     question_number = game.question_index + 1
