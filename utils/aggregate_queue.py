@@ -23,7 +23,7 @@ async def append(message: discord.Message):
         # 答え合わせ
         try:
             is_correct, is_last_question = await check_answer(message, game)
-        except ValueError("player status is not 'answering'"):
+        except ValueError as e:
             continue
         # 正解の場合の処理
         if not is_correct:
