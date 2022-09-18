@@ -35,7 +35,7 @@ async def add_global_ranking_records(user_records: dict) -> None:
         time = user_records[user_id]
         if str(user_id) in global_ranking_user_ids:
             # 過去の記録の方が早い場合は更新しない
-            if float(await global_ranking_namespace.read(str(user_id))) < time:
+            if cached_global_record[user_id] < time:
                 user_records.pop(user_id)
     await global_ranking_namespace.write(user_records)
     cached_global_record.update(user_records)

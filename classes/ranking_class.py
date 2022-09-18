@@ -1,6 +1,3 @@
-import json
-
-
 class GuildRanking:
     def __init__(self, guild_id: int = None,
                  word_count: int = None,
@@ -27,7 +24,7 @@ class GuildRanking:
                     user_records.pop(user_id)
         self.competitors_records.update(user_records)
 
-    def get_all_records(self, sort_by_time: bool = True):
+    def get_all_records(self, sort_by_time: bool = True) -> dict:
         records = {}
         if sort_by_time:
             sorted_tuple = sorted(self.competitors_records.items(), key=lambda x: x[1])

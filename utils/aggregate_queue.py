@@ -4,7 +4,7 @@ from typing import Tuple
 import discord
 
 from classes import button_classes
-from utils import games_manager
+from utils import games_manager, rankings
 
 queued_messages = {}
 
@@ -90,6 +90,12 @@ async def move_to_next_question(message: discord.Message, game):
 
 async def send_all_aggregated_result(message: discord.Message, game):
     embed = discord.Embed(title="全員の平均タイム", color=discord.Color.orange())
+    global_ranking = await rankings.get_global_ranking()
+    rank_message = ""
+    if global_ranking.is_user_in_ranking(message.author.id):
+        all_rankings = global_ranking.get_all_records()
+        user_rank = list(all_rankings.keys()).index(message.author.id) + 1
+        rank_message = f"あなたは全体で{user_rank}位です！"
     players_sorted_time, players_not_answered_count = game.aggregate_all_result()
     ranking = 0
     for t in players_sorted_time:
@@ -98,6 +104,6 @@ async def send_all_aggregated_result(message: discord.Message, game):
         ranking += 1
         member = message.guild.get_member(user_id)
         embed.add_field(name=f"{ranking}位 {member.name}",
-                        value=f"{average_time:.03f}秒\n未回答の問題：{players_not_answered_count[user_id]}問",
+                        value=f"{average_time:.03f}秒\n未回答の問題：{players_not_answered_count[user_id]}問\n\n{rank_message}",
                         inline=False)
     await message.channel.send(embed=embed)
