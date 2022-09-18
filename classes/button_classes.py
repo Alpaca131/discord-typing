@@ -3,7 +3,6 @@ import asyncio
 import discord
 from discord.ui import Button
 
-from classes.game_class import Game
 from utils import games_manager, aggregate_queue
 
 
@@ -17,7 +16,7 @@ class GameJoinButton(Button):
     async def callback(self, interaction: discord.Interaction):
         user = interaction.user
         channel_id = interaction.channel_id
-        game: Game = games_manager.get_game(channel_id)
+        game = games_manager.get_game(channel_id)
         if game is None:
             return
         if user.id in game.player_list:
@@ -42,7 +41,7 @@ class GameLeaveButton(Button):
     async def callback(self, interaction: discord.Interaction):
         user = interaction.user
         channel_id = interaction.channel_id
-        game: Game = games_manager.get_game(channel_id)
+        game = games_manager.get_game(channel_id)
         if game is None:
             return
         if user.id not in game.player_list:
@@ -73,7 +72,7 @@ class GameStartButton(Button):
 
     async def callback(self, interaction: discord.Interaction):
         channel_id = interaction.channel_id
-        game: Game = games_manager.get_game(channel_id)
+        game = games_manager.get_game(channel_id)
         if game is None:
             return
         view = discord.ui.View(timeout=None)
@@ -103,7 +102,7 @@ class GameQuitButton(Button):
 
     async def callback(self, interaction: discord.Interaction):
         channel_id = interaction.channel_id
-        game: Game = games_manager.get_game(channel_id)
+        game = games_manager.get_game(channel_id)
         if game is None:
             return
         games_manager.remove_game(game)
@@ -119,7 +118,7 @@ class NextQuestionButton(Button):
 
     async def callback(self, interaction: discord.Interaction):
         channel_id = interaction.channel_id
-        game: Game = games_manager.get_game(channel_id)
+        game = games_manager.get_game(channel_id)
         if game is None:
             return
         question = game.get_next_question()
