@@ -15,7 +15,6 @@ with open('files/sushida.json', encoding='utf-8') as f:
     sushida_dict = json.load(f)
 
 table = FilterRuleTable.from_file("files/google_ime_default_roman_table.txt")
-ime = GoogleInputIME(table)
 alphabet_regex = re.compile('[ -~]+')
 
 
@@ -133,6 +132,7 @@ def _check_answer(game: Game, user_input: str) -> Tuple[bool, str]:
 
 
 def rome_to_hiragana(input_string):
+    ime = GoogleInputIME(table)
     output = []
     for c in input_string:
         results = ime.input(c)
