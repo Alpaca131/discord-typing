@@ -1,3 +1,5 @@
+import json
+
 from classes.ranking_class import GlobalRanking, GuildRanking
 from utils.kv_namespaces import *
 
@@ -8,7 +10,8 @@ RANKING_WORD_COUNT = 10
 
 async def get_guild_ranking(guild_id: int) -> GuildRanking:
     data = await guild_ranking_namespace.read(str(guild_id))
-    return GuildRanking(json_data=data) if data else GuildRanking(word_count=RANKING_WORD_COUNT, guild_id=guild_id)
+    return GuildRanking(json_data=json.dumps(data)) if data else GuildRanking(word_count=RANKING_WORD_COUNT,
+                                                                              guild_id=guild_id)
 
 
 async def add_guild_ranking_records(game) -> None:
