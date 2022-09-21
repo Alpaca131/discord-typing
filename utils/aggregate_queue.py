@@ -87,7 +87,7 @@ async def move_to_next_question(message: discord.Message, game):
     view.add_item(button_classes.NextQuestionButton())
     view.add_item(button_classes.GameQuitButton())
     msg = await next_question_message.edit(embed=embed, view=view)
-    edited_time = msg.edited_timestamp.timestamp()
+    edited_time = msg.edited_at.timestamp()
     for user_id in game.player_list:
         game.start_answering(user_id=user_id, timestamp=edited_time)
 

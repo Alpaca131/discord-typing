@@ -110,7 +110,7 @@ async def on_message(message: discord.Message):
     if message.author.bot:
         return  # ボットは無視
     game = games_manager.get_game(channel_id=message.channel.id)
-    if game is None or message.author.id not in game.player_list:
+    if game is None or message.author.id not in game.player_list or not game.is_answering(message.author.id):
         return
     await aggregate_queue.queues[message.channel.id].put(message)
 
