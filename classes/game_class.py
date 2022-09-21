@@ -1,7 +1,6 @@
 import json
 import random
 import re
-import time
 from typing import Tuple
 
 import numpy as numpy
@@ -49,8 +48,8 @@ class Game:
         self.question_index += 1
         return self.question_list[self.question_index][1]
 
-    def start_answering(self, user_id: int):
-        self.start_time = time.time()
+    def start_answering(self, user_id: int, timestamp: float):
+        self.start_time = timestamp
         self.competitors_status[user_id] = 'answering'
 
     def is_answering(self, user_id: int):

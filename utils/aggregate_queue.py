@@ -82,13 +82,14 @@ async def move_to_next_question(message: discord.Message, game):
     question = game.get_next_question()
     question_number = game.question_index + 1
     embed = discord.Embed(title=f"問題{question_number}：{question}", color=discord.Color.blurple())
-    for user_id in game.player_list:
-        game.start_answering(user_id=user_id)
     game.save()
     view = discord.ui.View(timeout=None)
     view.add_item(button_classes.NextQuestionButton())
     view.add_item(button_classes.GameQuitButton())
-    await next_question_message.edit(embed=embed, view=view)
+    msg = await next_question_message.edit(embed=embed, view=view)
+    edited_time = msg.edited_timestamp.timestamp()
+    for user_id in game.player_list:
+        game.start_answering(user_id=user_id, timestamp=edited_time)
 
 
 async def send_all_aggregated_result(message: discord.Message, game):
