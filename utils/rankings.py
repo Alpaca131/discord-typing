@@ -10,7 +10,7 @@ RANKING_WORD_COUNT = 10
 
 async def get_guild_ranking(guild_id: int) -> GuildRanking:
     data = await guild_ranking_namespace.read(str(guild_id))
-    return GuildRanking(json_data=json.dumps(data)) if data else GuildRanking(word_count=RANKING_WORD_COUNT,
+    return GuildRanking(json_data=json.loads(data)) if data else GuildRanking(word_count=RANKING_WORD_COUNT,
                                                                               guild_id=guild_id)
 
 
