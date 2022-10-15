@@ -4,7 +4,7 @@ from utils import rankings
 games = {}
 
 
-def get_game(channel_id: int):
+def get_game(channel_id: int) -> Game:
     return games.get(channel_id)
 
 

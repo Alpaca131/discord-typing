@@ -1,7 +1,6 @@
 import json
 import random
 import re
-import time
 from typing import Tuple
 
 import numpy as numpy
@@ -15,12 +14,11 @@ with open('files/sushida.json', encoding='utf-8') as f:
     sushida_dict = json.load(f)
 
 table = FilterRuleTable.from_file("files/google_ime_default_roman_table.txt")
-ime = GoogleInputIME(table)
 alphabet_regex = re.compile('[ -~]+')
 
 
 class Game:
-    def __init__(self, guild_id:  int, channel_id: int, word_count: int):
+    def __init__(self, guild_id: int, channel_id: int, word_count: int):
         self.competitors_time = {}
         self.players_average_time = {}
         self.competitors_status = {}
@@ -31,7 +29,7 @@ class Game:
         self.question_list = generate_question_list(word_count)
         self.question_index = -1
         self.word_count = word_count
-        self.is_ranking_active = True if word_count == RANKING_WORD_COUNT else False
+        self.is_ranking_active = (word_count == RANKING_WORD_COUNT)
 
     def save(self):
         games_manager.save_game(self)
@@ -39,6 +37,7 @@ class Game:
     def add_player(self, member_id: int):
         self.player_list.append(member_id)
         self.competitors_time[member_id] = []
+        self.competitors_status[member_id] = 'answered'
 
     def remove_player(self, member_id: int):
         self.player_list.remove(member_id)
@@ -49,8 +48,8 @@ class Game:
         self.question_index += 1
         return self.question_list[self.question_index][1]
 
-    def start_answering(self, user_id: int):
-        self.start_time = time.time()
+    def start_answering(self, user_id: int, timestamp: float):
+        self.start_time = timestamp
         self.competitors_status[user_id] = 'answering'
 
     def is_answering(self, user_id: int):
@@ -62,12 +61,13 @@ class Game:
                 return False
         return True
 
-    def submit_answer(self, user_id: int, user_input: str) -> Tuple[bool, float, str]:
+    def submit_answer(self, msg_created_at: float, user_id: int, user_input: str) -> Tuple[bool, float, str]:
         """
         is_correctは正解の場合はTrue、不正解の場合はFalse
         Args:
-            user_id:
-            user_input:
+            msg_created_at: float
+            user_id: int
+            user_input: str
 
         Returns:
             is_correct: bool
@@ -77,7 +77,7 @@ class Game:
         is_answer_right, user_input = _check_answer(self, user_input)
         if is_answer_right:
             self.competitors_status[user_id] = 'answered'
-            elapsed_time = time.time() - self.start_time
+            elapsed_time = msg_created_at - self.start_time
             self.competitors_time[user_id].append(elapsed_time)
             return True, elapsed_time, user_input
         return False, 0, user_input
@@ -131,6 +131,7 @@ def _check_answer(game: Game, user_input: str) -> Tuple[bool, str]:
 
 
 def rome_to_hiragana(input_string):
+    ime = GoogleInputIME(table)
     output = []
     for c in input_string:
         results = ime.input(c)
