@@ -81,7 +81,7 @@ class GameStartButton(Button):
         await interaction.response.send_message(f"5秒後にゲームを開始します！", ephemeral=False)
         for i in (4, 3, 2, 1):
             await asyncio.sleep(1)
-            await interaction.edit_original_message(content=f"{i}秒後にゲームを開始します！")
+            await interaction.edit_original_response(content=f"{i}秒後にゲームを開始します！")
 
         question = game.get_next_question()
         game.save()
