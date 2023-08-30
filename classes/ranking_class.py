@@ -25,17 +25,11 @@ class GuildRanking:
         self.competitors_records.update(user_records)
 
     def get_all_records(self, sort_by_time: bool = True) -> dict:
-        records = {}
         if sort_by_time:
             sorted_tuple = sorted(self.competitors_records.items(), key=lambda x: x[1])
-            i: tuple
-            for i in sorted_tuple:
-                user_id = i[0]
-                time = self.competitors_records[user_id]
-                records[user_id] = time
+            records = {i[0]: i[1] for i in sorted_tuple}
         else:
-            for user_id in self.competitors_records:
-                records[user_id] = self.competitors_records[user_id]
+            records = self.competitors_records
         return records
 
     def is_user_in_ranking(self, user_id: int):
@@ -66,15 +60,9 @@ class GlobalRanking:
         return self.competitors_records.get(user_id)
 
     def get_all_records(self, sort_by_time: bool = True):
-        records = {}
         if sort_by_time:
             sorted_tuple = sorted(self.competitors_records.items(), key=lambda x: x[1])
-            i: tuple
-            for i in sorted_tuple:
-                user_id = i[0]
-                time = self.competitors_records[user_id]
-                records[user_id] = time
+            records = {i[0]: i[1] for i in sorted_tuple}
         else:
-            for user_id in self.competitors_records:
-                records[user_id] = self.competitors_records[user_id]
+            records = self.competitors_records
         return records

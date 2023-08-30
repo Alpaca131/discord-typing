@@ -27,8 +27,8 @@ async def on_ready():
 @bot.slash_command(name="help")
 async def help_command(ctx: discord.ApplicationContext):
     embed = discord.Embed(title="タイピングBot", description="回答はひらがな、またはローマ字で入力してください。"
-                                                        "\n**ランキングは10文字の問題を解くと対象になります。**"
-                                                        "\n問題は寿司打のものを利用しています。",
+                                                             "\n**ランキングは10文字の問題を解くと対象になります。**"
+                                                             "\n問題は寿司打のものを利用しています。",
                           color=discord.Color.green())
     embed.add_field(name="/ゲーム開始", value="ゲームを開始します。", inline=False)
     embed.add_field(name="/サーバーランキング", value="サーバー内でのランキングを表示します。", inline=False)
@@ -74,8 +74,10 @@ async def guild_ranking(ctx: discord.ApplicationContext):
     all_records: dict = ranking.get_all_records()
     embed = discord.Embed(title="このサーバーでの順位", color=discord.Color.green(),
                           description=f"文字数：{ranking.word_count}文字")
-    for user_id in all_records:
-        rank = list(all_records.keys()).index(user_id) + 1
+    guild_members = await ctx.guild.fetch_members().flatten()
+    record_members = [i for i in list(all_records.keys()) if i in [m.id for m in guild_members]]
+    for user_id in record_members:
+        rank = record_members.index(user_id) + 1
         member = ctx.guild.get_member(user_id)
         embed.add_field(name=f"{rank}位 {member.display_name}#{member.discriminator}",
                         value=f"{all_records[user_id]}秒", inline=False)
@@ -113,6 +115,7 @@ async def on_message(message: discord.Message):
     if game is None or message.author.id not in game.player_list or not game.is_answering(message.author.id):
         return
     await aggregate_queue.queues[message.channel.id].put(message)
+
 
 try:
     bot.run(envs.TOKEN)
